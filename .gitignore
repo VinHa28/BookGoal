@@ -1,86 +1,81 @@
-# =========================
-# GLOBAL
-# =========================
+# ================================
+# Node.js / JavaScript Projects
+# ================================
 node_modules/
-.env
-.env.*            # .env.local, .env.production...
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json
-.pnpm-debug.log
 
-# OS-specific
+# ================================
+# Environment Variables
+# ================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ================================
+# Logs
+# ================================
+logs
+*.log
+*.log.*
+lerna-debug.log
+
+# ================================
+# Build Outputs
+# ================================
+dist/
+build/
+.cache/
+coverage/
+.next/
+out/
+.expo/
+.expo-shared/
+
+# ================================
+# React Native Specific
+# ================================
+android/
+ios/
+*.keystore
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Gradle & Xcode cache
+*.gradle
+*.xcworkspace
+xcuserdata/
+DerivedData/
+Pods/
+podfile.lock
+
+# ================================
+# Editor / OS Files
+# ================================
 .DS_Store
 Thumbs.db
-
-# Editor configs & caches
-.vscode/
 .idea/
+.vscode/
 *.swp
 
-# =========================
-# BACKEND (Node.js / Express)
-# =========================
-/server/node_modules
-/server/dist
-/server/build
-/server/coverage
+# ================================
+# Misc
+# ================================
+*.pid
+*.seed
+*.tgz
+*.zip
+*.tar.gz
 
-# PM2 / logs
-/server/pids
-/server/logs
-/server/tmp
-
-# =========================
-# MOBILE (React Native)
-# =========================
-/mobile/node_modules
-/mobile/.expo
-/mobile/.expo-shared
-/mobile/ios/build
-/mobile/android/app/build
-/mobile/android/.gradle
-/mobile/android/.idea
-/mobile/android/local.properties
-/mobile/android/.cxx
-/mobile/coverage
-
-# React Native caches
-/mobile/.bundle
-/mobile/.vscode
-/mobile/metro-cache
-/mobile/yarn.lock
-
-# Xcode / iOS specific
-*.xcworkspace
-*.xcuserstate
-*.xcodeproj/*
-!*.xcodeproj/project.pbxproj
-*.xcuserdata/
-
-# Gradle / Android specific
-.gradle/
-build/
-captures/
-
-# =========================
-# ADMIN WEB (Vite / React)
-# =========================
-/admin/node_modules
-/admin/dist
-/admin/.vite
-/admin/.cache
-/admin/coverage
-/admin/yarn.lock
-/admin/.vscode
-
-# =========================
-# OPTIONAL: Ignore generated files
-# =========================
-*.local
-*.bak
-*.tmp
-*.log
+# ================================
+# Optional: Ignore local uploads
+# (Nếu có upload ảnh/file trong server local)
+# ================================
+uploads/
