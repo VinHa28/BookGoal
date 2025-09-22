@@ -1,31 +1,35 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+
 const SALT_ROUNDS = 10; // hash strong
 
 // Register
 export const register = async (req, res) => {
   try {
-    const { username, fullName, email, phone, password } = req.body;
+    const { username, phone, password } = req.body;
 
+    if (!username || !phone || !password) {
+      return res.status(400).json({ message: "Vui lòng điền đủ thông tin" });
+    }
+
+    // Kiểm tra phone hoặc username đã tồn tại chưa
     const existingUser = await User.findOne({
-      $or: [{ username }, { email }, { phone }],
+      $or: [{ username }, { phone }],
     });
     if (existingUser) {
       return res
         .status(400)
-        .json({ message: "Username, email hoặc phone đã tồn tại" });
+        .json({ message: "Username hoặc phone đã tồn tại" });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Create new user
+    // Tạo user mới
     const newUser = new User({
       username,
-      fullName: fullName || null,
-      email: email || null,
-      phone: phone || null,
+      phone,
       password: hashedPassword,
     });
 
@@ -35,9 +39,7 @@ export const register = async (req, res) => {
       message: "Đăng ký thành công",
       user: {
         id: newUser._id,
-        username,
-        fullName: newUser.fullName,
-        email: newUser.email,
+        username: newUser.username,
         phone: newUser.phone,
       },
     });
@@ -47,29 +49,24 @@ export const register = async (req, res) => {
   }
 };
 
-// Login (identifier: username, email or phone)
+// Login bằng phone + password
 export const login = async (req, res) => {
   try {
-    const { identifier, password } = req.body;
-    const user = await User.findOne({
-      $or: [
-        { username: identifier },
-        { phone: identifier },
-        { email: identifier },
-      ],
-    });
+    const { phone, password } = req.body;
 
+    if (!phone || !password) {
+      return res.status(400).json({ message: "Vui lòng điền đủ thông tin" });
+    }
+
+    const user = await User.findOne({ phone });
     if (!user) {
-      return res
-        .status(401)
-        .json({ message: "Thông tin đăng nhập không đúng" });
+      return res.status(401).json({ message: "Thông tin đăng nhập không đúng" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res
-        .status(401)
-        .json({ message: "Thông tin đăng nhập không đúng" });
+    if (!isMatch) {
+      return res.status(401).json({ message: "Thông tin đăng nhập không đúng" });
+    }
 
     // Token
     const accessToken = jwt.sign(
@@ -93,18 +90,17 @@ export const login = async (req, res) => {
       user: {
         id: user._id,
         username: user.username,
-        fullName: user.fullName,
-        role: user.role,
-        email: user.email,
         phone: user.phone,
+        role: user.role,
       },
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Lỗi server" + error.message });
+    res.status(500).json({ message: "Lỗi server: " + error.message });
   }
 };
 
+// Logout
 export const logout = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -114,7 +110,6 @@ export const logout = async (req, res) => {
       return res.status(404).json({ message: "User không tồn tại" });
     }
 
-    // Xóa refresh token
     user.refreshToken = null;
     await user.save();
 

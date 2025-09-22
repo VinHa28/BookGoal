@@ -2,17 +2,11 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    username: { type: String, required: true, unique: true },
-    fullName: {
-      type: String,
-      minlength: [2, "Full name phải ít nhất 2 ký tự"],
-      trim: true,
-    },
-    email: { type: String, unique: true, sparse: true },
+    username: { type: String, required: true, unique: true, trim: true },
     phone: {
       type: String,
+      required: true,
       unique: true,
-      sparse: true,
       match: [
         /^(0|\+84)[1-9]\d{8,9}$/,
         "Phone không hợp lệ (ví dụ: 0123456789 hoặc +84123456789)",
@@ -25,9 +19,10 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Không cần pre-save kiểm tra email nữa, chỉ cần phone
 userSchema.pre("save", function (next) {
-  if (!this.email && !this.phone) {
-    return next(new Error("Phải cung cấp ít nhất email hoặc phone"));
+  if (!this.phone) {
+    return next(new Error("Phải cung cấp phone"));
   }
   next();
 });
