@@ -8,12 +8,17 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../constants/colors";
+import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
 const FiealCard = ({ field }) => {
+  const router = useRouter();
+  const fieldDetail = () => {
+    router.replace("/field/1");
+  };
   return (
-    <TouchableOpacity style={styles.fieldCard}>
+    <TouchableOpacity style={styles.fieldCard} onPress={fieldDetail}>
       <Image
         source={{ uri: field.image }}
         style={styles.fieldImagePlaceholder}

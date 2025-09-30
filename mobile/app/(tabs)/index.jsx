@@ -15,6 +15,7 @@ import mockFields, { mockUpcoming } from "../../constants/data.js";
 import Logo from "../../components/Logo";
 import FiealCard from "../../components/FiealCard";
 import UpcomingBookingCard from "../../components/UpcomingBookingCard.jsx";
+import { useRouter } from "expo-router";
 
 const HEADER_PADDING_TOP =
   Platform.OS === "adroid" ? StatusBar.currentHeight + 10 : 30;
@@ -26,11 +27,13 @@ const categories = [
   { key: "popular", label: "Phổ biến" },
 ];
 export default function Index() {
+  const router = useRouter();
   const renderCategoryItem = ({ item }) => (
     <TouchableOpacity style={styles.categoryPill}>
       <Text style={styles.categoryText}>{item.label}</Text>
     </TouchableOpacity>
   );
+ 
   return (
     <View style={styles.container}>
       {/* Header */}
