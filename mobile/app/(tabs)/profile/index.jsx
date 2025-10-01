@@ -14,6 +14,7 @@ import {
 import { Stack } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import COLORS from "../../../constants/colors.js";
+import { useAuth } from "../../../context/AuthContext.jsx";
 
 const { width } = Dimensions.get("window");
 
@@ -68,16 +69,20 @@ const SettingItem = ({
 export default function ProfileScreen() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState(mockUser);
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.log("Lỗi đăng xuất: ", error);
+    }
+  };
 
   // Chức năng demo, trong thực tế sẽ điều hướng đến màn hình chỉnh sửa
   const handleEditProfile = () => {
     console.log("Chuyển đến màn hình Chỉnh sửa thông tin");
     // Ở đây bạn sẽ dùng router.push('/profile/edit');
-  };
-
-  const handleLogout = () => {
-    console.log("Thực hiện Đăng xuất...");
-    // Logic đăng xuất
   };
 
   return (
