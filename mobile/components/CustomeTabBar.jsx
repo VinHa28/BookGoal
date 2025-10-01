@@ -9,11 +9,22 @@ const INACTIVE_COLOR = "white";
 const BACKGROUND_COLOR = COLORS.primary;
 
 export default function CustomTabBar({ state, descriptors, navigation }) {
+  const visibleRoutes = state.routes.filter(
+    (route) => descriptors[route.key].options.tabBarIcon
+  );
   return (
     <View style={styles.mainContainer}>
       <View style={styles.tabItemsContainer}>
-        {state.routes.map((route, index) => {
+        {visibleRoutes.map((route, index) => {
           const { options } = descriptors[route.key];
+
+          if (
+            route.name.startsWith("_") ||
+            options.tabBarButton === (() => null)
+          ) {
+            return null;
+          }
+
           const isFocused = state.index === index;
 
           const onPress = () => {
@@ -71,8 +82,8 @@ const styles = StyleSheet.create({
   },
   tabItemsContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
     alignItems: "center",
+    justifyContent: "space-around",
     height: "100%",
   },
   tabItemActiveWrapper: {

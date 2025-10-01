@@ -26,7 +26,6 @@ export const login = async (phone, password) => {
 export const logout = async () => {
   try {
     const token = await SecureStore.getItemAsync("accessToken");
-    console.log(token);
     if (token) {
       await api.post(
         "/auth/logout",

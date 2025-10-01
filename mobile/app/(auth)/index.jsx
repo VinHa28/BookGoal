@@ -22,7 +22,6 @@ const Login = () => {
 
     try {
       await login(phone, password);
-      console.log("Login thành công");
       router.replace("/(tabs)");
     } catch (error) {
       // Nhận đúng message từ service

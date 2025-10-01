@@ -82,8 +82,8 @@ const TimeSlotCard = ({ slot, onSelect, isSelected }) => (
 
 // --- COMPONENT LỊCH MỚI (Đã cập nhật) ---
 const BookingCalendar = ({ onDateSelect }) => {
-  const [currentDate, setCurrentDate] = useState(new Date("2025-09-01"));
-  const [selectedDate, setSelectedDate] = useState(new Date("2025-09-30"));
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Lấy ngày hiện tại (reset giờ về 00:00:00 để so sánh chính xác)
   const today = useMemo(() => {
@@ -259,7 +259,7 @@ export default function FieldDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date("2025-09-30")); // Ngày mặc định
+  const [selectedDate, setSelectedDate] = useState(new Date()); // Ngày mặc định
 
   const field = mockFieldData;
 
@@ -378,6 +378,7 @@ export default function FieldDetailScreen() {
             keyExtractor={(item) => item.hour}
             numColumns={3}
             columnWrapperStyle={detailStyles.timeSlotRow}
+            scrollEnabled={false}
             renderItem={({ item }) => (
               <TimeSlotCard
                 slot={item}
