@@ -15,12 +15,10 @@ export const register = async (req, res) => {
 
     // Kiểm tra phone hoặc username đã tồn tại chưa
     const existingUser = await User.findOne({
-      $or: [{ username }, { phone }],
+      phone,
     });
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "Username hoặc phone đã tồn tại" });
+      return res.status(400).json({ message: "Số điện thoại đã được sử dụng" });
     }
 
     // Hash password
@@ -49,7 +47,6 @@ export const register = async (req, res) => {
   }
 };
 
-// Login bằng phone + password
 export const login = async (req, res) => {
   try {
     const { phone, password } = req.body;
@@ -60,33 +57,29 @@ export const login = async (req, res) => {
 
     const user = await User.findOne({ phone });
     if (!user) {
-      return res.status(401).json({ message: "Thông tin đăng nhập không đúng" });
+      return res
+        .status(401)
+        .json({ message: "Thông tin đăng nhập không đúng" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Thông tin đăng nhập không đúng" });
+      return res
+        .status(401)
+        .json({ message: "Thông tin đăng nhập không đúng" });
     }
 
     // Token
     const accessToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "10m" }
     );
-
-    // Refresh Token
-    const refreshToken = jwt.sign(
-      { id: user._id },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: "7d" }
-    );
-    user.refreshToken = refreshToken;
+    user.accessToken = accessToken;
     await user.save();
 
     res.json({
       accessToken,
-      refreshToken,
       user: {
         id: user._id,
         username: user.username,

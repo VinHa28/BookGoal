@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    username: { type: String, required: true, unique: true, trim: true },
+    username: { type: String, required: true, trim: true },
     phone: {
       type: String,
       required: true,
@@ -14,12 +14,13 @@ const userSchema = new mongoose.Schema(
     },
     password: { type: String, required: true },
     role: { type: String, enum: ["user", "admin"], default: "user" },
-    refreshToken: { type: String },
+    status: { type: String, enum: ["active", "inactive"], default: "active" }, // 🆕 thêm trường status
+    accessToken: { type: String },
+    avtUrl: { type: String },
   },
   { timestamps: true }
 );
 
-// Không cần pre-save kiểm tra email nữa, chỉ cần phone
 userSchema.pre("save", function (next) {
   if (!this.phone) {
     return next(new Error("Phải cung cấp phone"));

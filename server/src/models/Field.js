@@ -11,6 +11,7 @@ const fieldSchema = new mongoose.Schema(
         price: { type: Number, required: true },
       },
     ],
+    description: { type: String },
   },
   { timestamps: true }
 );
