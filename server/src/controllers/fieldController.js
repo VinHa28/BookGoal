@@ -23,28 +23,31 @@ export const getFieldById = async (req, res) => {
 // Add Field
 export const addField = async (req, res) => {
   try {
-    const { name, location, images, prices, description } = req.body;
+    const { name, location, images, prices, description, type } = req.body;
+
     if (
       !name ||
       !location ||
       !prices ||
       !Array.isArray(prices) ||
-      prices.length === 0
+      prices.length === 0 ||
+      !type
     ) {
-      return res
-        .status(400)
-        .json({ message: "Missing required fields or invalid prices format" });
+      return res.status(400).json({
+        message: "Missing required fields or invalid prices/type format",
+      });
     }
+
     const newField = new Field({
       name,
       location,
       images: images || [],
       prices,
       description: description || "",
+      type, // 🆕 thêm type
     });
 
     const savedField = await newField.save();
-
     res
       .status(201)
       .json({ message: "Thêm sân mới thành công", field: savedField });
@@ -57,18 +60,18 @@ export const addField = async (req, res) => {
 // Update field
 export const updateField = async (req, res) => {
   const { id } = req.params;
-  const { name, location, images, prices, description } = req.body;
+  const { name, location, images, prices, description, type } = req.body;
+
   try {
     const field = await Field.findById(id);
-    if (!field) {
-      res.status(404).json({ message: "Field not found" });
-    }
+    if (!field) return res.status(404).json({ message: "Field not found" });
 
     if (name) field.name = name;
     if (location) field.location = location;
     if (Array.isArray(images)) field.images = images;
     if (Array.isArray(prices)) field.prices = prices;
     if (description !== undefined) field.description = description;
+    if (type) field.type = type; // 🆕 cho phép update loại sân
 
     const updatedField = await field.save();
     res

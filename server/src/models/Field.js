@@ -11,6 +11,11 @@ const fieldSchema = new mongoose.Schema(
         price: { type: Number, required: true },
       },
     ],
+    type: {
+      type: String,
+      enum: ["sân 5", "sân 7", "sân 11"], 
+      required: true,
+    },
     description: { type: String },
   },
   { timestamps: true }
