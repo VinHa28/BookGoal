@@ -4,6 +4,7 @@ const fieldSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     location: { type: String, required: true },
+    address: { type: String, required: true },
     images: [{ type: String }],
     prices: [
       {
@@ -13,7 +14,7 @@ const fieldSchema = new mongoose.Schema(
     ],
     type: {
       type: String,
-      enum: ["sân 5", "sân 7", "sân 11"], 
+      enum: ["sân 5", "sân 7", "sân 11"],
       required: true,
     },
     description: { type: String },

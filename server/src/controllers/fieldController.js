@@ -3,9 +3,38 @@ import Field from "../models/Field.js";
 
 export const getFields = async (req, res) => {
   try {
+    const today = new Date().toISOString().split("T")[0];
+
     const fields = await Field.find();
-    res.json(fields);
+
+    const bookings = await Booking.find({
+      date: today,
+      status: { $in: ["pending", "confirmed"] },
+    }).select("field timeSlot");
+
+    const bookedMap = {};
+    bookings.forEach((b) => {
+      const fieldId = b.field.toString();
+      if (!bookedMap[fieldId]) bookedMap[fieldId] = new Set();
+      bookedMap[fieldId].add(b.timeSlot);
+    });
+
+    const formatted = fields.map((field) => {
+      const totalSlots = field.prices?.length || 0;
+      const bookedSlots = bookedMap[field._id]?.size || 0;
+      const available = Math.max(totalSlots - bookedSlots, 0);
+
+      return {
+        _id: field._id,
+        name: field.name,
+        location: field.location,
+        image: field.images?.[0] || null,
+        available,
+      };
+    });
+    res.json(formatted);
   } catch (error) {
+    console.error("Error fetching fields:", error);
     res.status(500).json({ message: "Error fetching fields", error });
   }
 };
@@ -23,12 +52,14 @@ export const getFieldById = async (req, res) => {
 // Add Field
 export const addField = async (req, res) => {
   try {
-    const { name, location, images, prices, description, type } = req.body;
+    const { name, location, address, images, prices, description, type } =
+      req.body;
 
     if (
       !name ||
       !location ||
       !prices ||
+      !address ||
       !Array.isArray(prices) ||
       prices.length === 0 ||
       !type
@@ -41,10 +72,11 @@ export const addField = async (req, res) => {
     const newField = new Field({
       name,
       location,
+      address,
       images: images || [],
       prices,
       description: description || "",
-      type, // 🆕 thêm type
+      type,
     });
 
     const savedField = await newField.save();
@@ -60,7 +92,8 @@ export const addField = async (req, res) => {
 // Update field
 export const updateField = async (req, res) => {
   const { id } = req.params;
-  const { name, location, images, prices, description, type } = req.body;
+  const { name, location, address, images, prices, description, type } =
+    req.body;
 
   try {
     const field = await Field.findById(id);
@@ -68,6 +101,7 @@ export const updateField = async (req, res) => {
 
     if (name) field.name = name;
     if (location) field.location = location;
+    if (address) field.address = address;
     if (Array.isArray(images)) field.images = images;
     if (Array.isArray(prices)) field.prices = prices;
     if (description !== undefined) field.description = description;
