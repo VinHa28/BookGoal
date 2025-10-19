@@ -112,24 +112,27 @@ export const updateField = async (req, res) => {
       .status(200)
       .json({ message: "Field updated successfully", field: updatedField });
   } catch (error) {
-    console.log("Error updating field", error);
+    console.error("Error updating field", error);
     res.status(500).json({ message: "Error updating field", error });
   }
 };
 
 export const getBookedSlots = async (req, res) => {
-  const id = req.params;
-  const date = req.query; //YYYY-MM-DD
-
+  const { id } = req.params;
+  const { date } = req.query; //YYYY-MM-DD
+  if (!id || !date) {
+    return res.status(400).json({ message: "Field ID và ngày là bắt buộc." });
+  }
   try {
     const bookings = await Booking.find({
       field: id,
-      date: new Date(date),
+      date: date,
       status: { $in: ["pending", "confirmed"] },
     }).select("timeSlot");
     const bookedSlot = bookings.map((b) => b.timeSlot);
     res.json(bookedSlot);
   } catch (error) {
+    console.error("Error fetching booked slots", error);
     res.status(500).json({ message: "Error fetching booked slots", error });
   }
 };
@@ -144,7 +147,7 @@ export const getAllSlots = async (req, res) => {
     if (!field) return res.status(404).json({ message: "Field not found!" });
     const bookings = await Booking.find({
       field: id,
-      date: new Date(date),
+      date: date,
       status: { $in: ["pending", "confirmed"] },
     }).select("timeSlot");
     const bookedSlots = bookings.map((b) => b.timeSlot);
@@ -152,7 +155,6 @@ export const getAllSlots = async (req, res) => {
       timeSlot: slot.timeSlot,
       price: slot.price,
       booked: bookedSlots.includes(slot.timeSlot),
-      status: bookedSlots.includes(slot.timeSlot) ? "booked" : "available",
     }));
     res.json(allSlots);
   } catch (error) {

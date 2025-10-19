@@ -4,7 +4,6 @@ import User from "../models/User.js";
 
 const SALT_ROUNDS = 10; // hash strong
 
-// Register
 export const register = async (req, res) => {
   try {
     const { username, phone, password } = req.body;
@@ -13,7 +12,6 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "Vui lòng điền đủ thông tin" });
     }
 
-    // Kiểm tra phone hoặc username đã tồn tại chưa
     const existingUser = await User.findOne({
       phone,
     });
@@ -21,10 +19,8 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "Số điện thoại đã được sử dụng" });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Tạo user mới
     const newUser = new User({
       username,
       phone,
@@ -73,7 +69,7 @@ export const login = async (req, res) => {
     const accessToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "10m" }
+      { expiresIn: "7d" }
     );
     user.accessToken = accessToken;
     await user.save();
@@ -85,6 +81,7 @@ export const login = async (req, res) => {
         username: user.username,
         phone: user.phone,
         role: user.role,
+        avtUrl: user.avtUrl,
       },
     });
   } catch (error) {

@@ -5,6 +5,7 @@ import authRoutes from "./routes/authRoutes.js";
 import filedRoutes from "./routes/fieldRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -28,6 +29,9 @@ app.use("/api/bookings", bookingRoutes);
 
 // User
 app.use("/api/user", userRoutes);
+
+// Notification
+app.use("/api/notifications", notificationRoutes);
 
 // Route Test
 app.get("/", (req, res) => {

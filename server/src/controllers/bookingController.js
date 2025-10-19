@@ -1,5 +1,25 @@
+import cron from "node-cron";
 import Booking from "../models/Booking.js";
 import Field from "../models/Field.js";
+
+cron.schedule("0 0 * * *", async () => {
+  try {
+    const today = new Date();
+    const todayString = today.toISOString().split("T")[0];
+
+    const result = await Booking.updateMany(
+      {
+        date: { $lt: todayString },
+        status: "pending",
+      },
+      { $set: { status: "cancelled" } }
+    );
+
+    console.log(`Auto-cancelled ${result.modifiedCount} expired bookings`);
+  } catch (error) {
+    console.error("Error in auto-cancel cron job:", error);
+  }
+});
 
 export const createBooking = async (req, res) => {
   try {
@@ -29,8 +49,8 @@ export const createBooking = async (req, res) => {
     });
     res.status(201).json(booking);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error creating booking" }, errors);
+    console.error(error);
+    res.status(500).json({ message: "Error creating booking" }, error);
   }
 };
 
@@ -47,13 +67,33 @@ export const getAllBookings = async (req, res) => {
 
 export const getUserBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({ user: req.user.id }).populate(
-      "field",
-      "name location"
-    );
+    const bookings = await Booking.find({ user: req.user.id })
+      .sort({ date: -1, timeSlot: 1 })
+      .populate("field", "name location");
     res.status(200).json(bookings);
   } catch (error) {
     res.status(500).json({ message: "Error fetching user bookings" });
+  }
+};
+
+export const getUserLatestBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findOne({ user: req.user.id })
+      .sort({ date: -1, timeSlot: 1 })
+      .populate("field", "name location");
+    if (!booking) return res.status(200).json({});
+    const formatted = {
+      _id: booking._id,
+      fieldName: booking.field.name,
+      date: booking.date,
+      timeSlot: booking.timeSlot,
+      price: booking.price,
+      status: booking.status,
+    };
+    res.status(200).json(formatted);
+  } catch (error) {
+    console.log("Error fetching latest booking:", error);
+    res.status(500).json({ message: "Error fetching user booking" });
   }
 };
 

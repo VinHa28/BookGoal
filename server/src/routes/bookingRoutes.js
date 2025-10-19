@@ -6,6 +6,7 @@ import {
   createBooking,
   getAllBookings,
   getUserBookings,
+  getUserLatestBooking,
 } from "../controllers/bookingController.js";
 
 const router = express.Router();
@@ -14,7 +15,7 @@ const router = express.Router();
 router.post("/", verifyToken, createBooking);
 router.get("/my", verifyToken, getUserBookings);
 router.put("/cancel/:id", verifyToken, cancelBooking);
-
+router.get("/my-latest", verifyToken, getUserLatestBooking);
 // Admin
 router.get("/", verifyToken, verifyAdmin, getAllBookings);
 router.put("/:id/confirm", verifyToken, verifyAdmin, confirmBooking);
