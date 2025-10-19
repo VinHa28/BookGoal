@@ -3,20 +3,41 @@ import { Ionicons } from "@expo/vector-icons";
 import colors from "../constants/colors";
 
 const UpcomingBookingCard = ({ booking }) => {
+  const dateObject = new Date(booking.date);
   return (
     <View style={styles.bookingCard}>
       <Text style={styles.bookingFieldName}>{booking.fieldName}</Text>
       <View style={styles.bookingDetailRow}>
         <Ionicons name="calendar-outline" size={16} color={colors.primary} />
-        <Text style={styles.bookingText}>{booking.date}</Text>
+        <Text style={styles.bookingText}>
+          {dateObject.toLocaleDateString("vi-VN", {
+            weekday: "long",
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+          })}
+        </Text>
       </View>
       <View style={styles.bookingDetailRow}>
         <Ionicons name="time-outline" size={16} color={colors.primary} />
-        <Text style={styles.bookingText}>{booking.time}</Text>
+        <Text style={styles.bookingText}>{booking.timeSlot}</Text>
       </View>
       <View style={styles.bookingDetailRow}>
         <Ionicons name="pricetag-outline" size={16} color={colors.primary} />
         <Text style={styles.bookingPrice}>{booking.price}</Text>
+      </View>
+      <View style={styles.bookingDetailRow}>
+        <Text
+          style={
+            booking.status === "pending"
+              ? styles.statusPeding
+              : booking.status === "cancelled"
+              ? styles.statusCancelled
+              : styles.statusConfirm
+          }
+        >
+          {booking.status}
+        </Text>
       </View>
       <TouchableOpacity style={styles.bookingActionButton}>
         <Text style={styles.bookingActionText}>Chi tiết lịch hẹn</Text>
@@ -74,5 +95,14 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: "600",
     fontSize: 15,
+  },
+  statusPeding: {
+    color: "#31D0AA",
+  },
+  statusCancelled: {
+    color: "#FE7474",
+  },
+  statusConfirm: {
+    color: "#5265FF",
   },
 });

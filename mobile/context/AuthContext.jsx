@@ -1,10 +1,14 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import * as SecureStore from "expo-secure-store";
 import {
   getStoredUser,
+  localLogout,
   login as loginService,
   logout as logoutService,
 } from "../services/authServices";
 import { useRouter } from "expo-router";
+import { isTokenExpired } from "../utils/utils";
+import { Alert } from "react-native";
 
 const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
@@ -15,7 +19,21 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       const storedUser = await getStoredUser();
-      if (storedUser) setUser(storedUser);
+      const token = await SecureStore.getItemAsync("accessToken");
+
+      if (storedUser && token) {
+        if (!isTokenExpired(token)) {
+          setUser(storedUser);
+        } else {
+          await localLogout();
+          setUser(null);
+          Alert.alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+          router.replace("/(auth)");
+        }
+      } else {
+        setUser(null); // chưa login
+        router.replace("/(auth)");
+      }
       setLoading(false);
     };
     loadUser();

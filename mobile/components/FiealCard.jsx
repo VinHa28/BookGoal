@@ -12,37 +12,39 @@ import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
-const FiealCard = ({ field }) => {
+const FiedlCard = ({ field }) => {
   const router = useRouter();
   const fieldDetail = () => {
-    router.replace("/field/1");
+    router.replace(`/field/${field._id}`);
   };
   return (
     <TouchableOpacity style={styles.fieldCard} onPress={fieldDetail}>
       <Image
-        source={{ uri: field.image }}
+        source={{ uri: field.image || "" }}
         style={styles.fieldImagePlaceholder}
       />
       <View style={styles.fieldInfo}>
         <Text style={styles.fieldName}>{field.name}</Text>
         <View style={styles.fieldDetailRow}>
           <Ionicons name="location-outline" size={14} color="#666" />
-          <Text style={styles.fieldAddress}>{field.address}</Text>
+          <Text style={styles.fieldAddress}>{field.location}</Text>
         </View>
 
         <View style={styles.fieldDetailRow}>
           <Ionicons name="walk-outline" size={14} color="#666" />
-          <Text style={styles.fieldDistance}>{field.distance}</Text>
+          <Text style={styles.fieldDistance}>
+            {field.distance || "unknown"}
+          </Text>
         </View>
         <Text style={styles.fieldAvailability}>
-          Còn trống: {field.availability} khung giờ
+          Còn trống: {field.available} khung giờ
         </Text>
       </View>
     </TouchableOpacity>
   );
 };
 
-export default FiealCard;
+export default FiedlCard;
 
 const styles = StyleSheet.create({
   fieldCard: {

@@ -2,12 +2,13 @@ import { View, Text, Image, TouchableOpacity } from "react-native";
 import colors from "../constants/colors";
 import { useRouter } from "expo-router";
 
-const BackHeader = ({ title = "Quay lại", variant = "" }) => {
+const BackHeader = ({ title = "Quay lại", variant = "", backTo }) => {
   const color = variant === "dark" ? colors.text : "white";
   const background = variant === "dark" ? colors.accent : "black";
   const router = useRouter();
 
   const handleBack = () => {
+    if (backTo) return router.push(backTo);
     if (router.canGoBack()) {
       router.back();
     } else {

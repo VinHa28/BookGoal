@@ -1,4 +1,5 @@
 import {
+  Alert,
   FlatList,
   Platform,
   ScrollView,
@@ -11,11 +12,13 @@ import {
 import COLORS from "../../constants/colors";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
-import mockFields, { mockUpcoming } from "../../constants/data.js";
 import Logo from "../../components/Logo";
-import FiealCard from "../../components/FiealCard";
 import UpcomingBookingCard from "../../components/UpcomingBookingCard.jsx";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { getFields } from "../../services/fieldService.js";
+import FiedlCard from "../../components/FiealCard";
+import { getLatestBooking } from "../../services/bookingService.js";
 
 const HEADER_PADDING_TOP =
   Platform.OS === "adroid" ? StatusBar.currentHeight + 10 : 30;
@@ -24,85 +27,111 @@ const categories = [
   { key: "5", label: "Sân 5" },
   { key: "7", label: "Sân 7" },
   { key: "11", label: "Sân 11" },
-  { key: "popular", label: "Phổ biến" },
 ];
 export default function Index() {
-  const router = useRouter();
+  const [fields, setFields] = useState([]);
+  const [latestBooking, setLatestBooking] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const fetchFields = async () => {
+    try {
+      setLoading(true);
+      const data = await getFields();
+      setFields(data);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách sân:", error);
+      Alert.alert("Lỗi", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLatesBooking = async () => {
+    try {
+      setLoading(true);
+      const data = await getLatestBooking();
+      if (data) setLatestBooking(data);
+    } catch (error) {
+      console.error("Lỗi khi lấy booking: ", error);
+      Alert.alert("Lỗi", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderCategoryItem = ({ item }) => (
     <TouchableOpacity style={styles.categoryPill}>
       <Text style={styles.categoryText}>{item.label}</Text>
     </TouchableOpacity>
   );
- 
+
+  useEffect(() => {
+    fetchFields();
+    fetchLatesBooking();
+  }, []);
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.topRow}>
-          <TouchableOpacity style={styles.topRowButton}>
-            <Ionicons name="menu-outline" size={24} color="white" />
-          </TouchableOpacity>
-
+          <View></View>
           <View style={styles.logoContainer}>
             <Logo size={40} />
           </View>
-
           <TouchableOpacity style={styles.topRowButton}>
             <Ionicons name="notifications-outline" size={24} color="white" />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.searchBarContainer}>
-          <Ionicons
-            name="search-outline"
-            size={24}
-            color={COLORS.dark}
-            style={styles.searchIcon}
-          />
-          <TextInput style={styles.searchInput} />
-          <TouchableOpacity style={styles.filterButton}>
-            <Ionicons name="options-outline" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
+        <View style={styles.userLocation}>
+          <Ionicons name="location-outline" color={"white"} size={24} />
+          <Text style={{ color: "white" }}> Địa chỉ chỗ này</Text>
         </View>
       </View>
       {/* Content */}
-      <ScrollView style={styles.contentContainer}>
-        {/* Categories */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Tìm kiếm nhanh</Text>
-          </View>
-          <FlatList
-            data={categories}
-            keyExtractor={(item) => item.key}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryList}
-            renderItem={renderCategoryItem}
-          />
-        </View>
-
-        {/* Near Me */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Sân bóng gần bạn</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>Xem tất cả</Text>
-            </TouchableOpacity>
+      {loading ? (
+        <Text>Loading...</Text>
+      ) : (
+        <ScrollView style={styles.contentContainer}>
+          {/* Categories */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Tìm kiếm nhanh</Text>
+            </View>
+            <FlatList
+              data={categories}
+              horizontal
+              keyExtractor={(item, index) => index.toString()}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryList}
+              renderItem={renderCategoryItem}
+            />
           </View>
 
-          <FlatList
-            data={mockFields}
-            renderItem={({ item }) => <FiealCard field={item} />}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{}}
-          />
-        </View>
+          {/* Near Me */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Sân bóng gần bạn</Text>
+              <TouchableOpacity>
+                <Text style={styles.seeAll}>Xem tất cả</Text>
+              </TouchableOpacity>
+            </View>
 
-        {/* Upcoming Booking */}
-        {mockUpcoming.length > 0 && (
+            <FlatList
+              data={fields}
+              renderItem={({ item }) => <FiedlCard field={item} />}
+              keyExtractor={(item, index) =>
+                item._id?.toString() || item.id?.toString() || index.toString()
+              }
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{}}
+            />
+          </View>
+
+          {/* Upcoming Booking */}
+
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Lịch đặt sân sắp tới</Text>
@@ -110,10 +139,16 @@ export default function Index() {
                 <Text style={styles.seeAll}>Xem tất cả</Text>
               </TouchableOpacity>
             </View>
-            <UpcomingBookingCard booking={mockUpcoming[0]} />
+            {Object.keys(latestBooking).length === 0 ? (
+              <Text style={{ fontStyle: "italic" }}>
+                Chưa có lịch đặt sân nào sắp tới
+              </Text>
+            ) : (
+              <UpcomingBookingCard booking={latestBooking} />
+            )}
           </View>
-        )}
-      </ScrollView>
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -144,18 +179,14 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: "center",
   },
-  searchBarContainer: {
+  userLocation: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    height: 38,
-    shadowColor: COLORS.dark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 5,
+    justifyContent: "center",
+  },
+  userLocationText: {
+    color: "#fff",
   },
   searchIcon: {
     marginRight: 10,

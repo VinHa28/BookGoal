@@ -1,8 +1,9 @@
 import { View, Text, TouchableOpacity, TextInput, Alert } from "react-native";
 import styles from "../../assets/styles/auth.styles.js";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useState } from "react";
+import colors from "../../constants/colors.js";
 
 const Login = () => {
   const router = useRouter();
@@ -78,6 +79,12 @@ const Login = () => {
             />
           </View>
         </View>
+        <Link
+          href={"/(auth)/resetPassword"}
+          style={{ marginLeft: "auto", textDecorationLine: "underline",color: colors.secondary }}
+        >
+          Quên mật khẩu?
+        </Link>
         {error ? (
           <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>
         ) : null}

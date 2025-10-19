@@ -4,10 +4,8 @@ import * as SecureStore from "expo-secure-store";
 export const login = async (phone, password) => {
   try {
     const res = await api.post("/auth/login", { phone, password });
-    const { accessToken, refreshToken, user } = res.data;
-    console.log(user);
+    const { accessToken, user } = res.data;
     await SecureStore.setItemAsync("accessToken", accessToken);
-    await SecureStore.setItemAsync("refreshToken", refreshToken);
     await SecureStore.setItemAsync("user", JSON.stringify(user));
     return { user, accessToken };
   } catch (error) {
@@ -15,10 +13,8 @@ export const login = async (phone, password) => {
     const message =
       error.response?.data?.message || error.message || "Đăng nhập thất bại";
 
-    // Log ra console cho dev
-    console.log("Có lỗi khi đăng nhập:", message);
+    console.error("Có lỗi khi đăng nhập:", message);
 
-    // Ném ra object có { message } để UI nhận
     throw { message };
   }
 };
@@ -36,18 +32,41 @@ export const logout = async () => {
       );
     }
   } catch (error) {
-    console.log(
+    console.error(
       "Có lỗi khi đăng xuất: ",
       error.response?.data || error.message
     );
   }
 
   await SecureStore.deleteItemAsync("accessToken");
-  await SecureStore.deleteItemAsync("refreshToken");
   await SecureStore.deleteItemAsync("user");
 };
 
 export const getStoredUser = async () => {
   const user = await SecureStore.getItemAsync("user");
   return user ? JSON.parse(user) : null;
+};
+
+export const localLogout = async () => {
+  await SecureStore.deleteItemAsync("accessToken");
+  await SecureStore.deleteItemAsync("user");
+};
+
+export const signUp = async (fullName, phone, password) => {
+  try {
+    const res = await api.post("/auth/register", {
+      username: fullName,
+      phone,
+      password,
+    });
+
+    return res;
+  } catch (error) {
+    const message =
+      error.response?.data?.message || error.message || "Đăng ký thất bại";
+
+    console.error("Có lỗi khi đăng ký:", message);
+
+    throw { message };
+  }
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import {
   View,
   Text,
@@ -7,26 +7,22 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  StatusBar,
   Switch,
   Image,
 } from "react-native";
-import { Stack } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import COLORS from "../../../constants/colors.js";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
-// Dữ liệu User giả định dựa trên yêu cầu của bạn
 const mockUser = {
   username: "Hà Văn Vinh",
   phone: "0987654321",
-  // Mật khẩu không nên hiển thị, chỉ có chức năng "Change Password"
   avatar: "https://placehold.co/100x100/CCCCCC/5e56d4?text=NA",
 };
 
-// Component cho mỗi dòng thiết lập
 const SettingItem = ({
   icon,
   label,
@@ -67,38 +63,38 @@ const SettingItem = ({
 );
 
 export default function ProfileScreen() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [user, setUser] = useState(mockUser);
-  const { logout } = useAuth();
-
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const handleLogout = async () => {
     try {
       await logout();
     } catch (error) {
-      console.log("Lỗi đăng xuất: ", error);
+      console.error("Lỗi đăng xuất: ", error);
     }
   };
 
-  // Chức năng demo, trong thực tế sẽ điều hướng đến màn hình chỉnh sửa
   const handleEditProfile = () => {
-    console.log("Chuyển đến màn hình Chỉnh sửa thông tin");
-    // Ở đây bạn sẽ dùng router.push('/profile/edit');
+    router.push("/(tabs)/profile/edit");
   };
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContent}>
-        {/* --- 1. Khu vực thông tin cơ bản --- */}
         <View style={styles.profileHeader}>
-          {/* Placeholder cho Avatar */}
           <Image
-            source={require("../../../assets/images/avatar.png")}
+            source={
+              user?.avtUrl
+                ? { uri: user.avtUrl }
+                : {
+                    uri: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
+                  }
+            }
             style={styles.avatarPlaceholder}
           />
 
-          <Text style={styles.userName}>{user.username}</Text>
+          <Text style={styles.userName}>{user?.username}</Text>
 
-          <Text style={styles.userPhone}>ĐT: {user.phone}</Text>
+          <Text style={styles.userPhone}>ĐT: {user?.phone}</Text>
 
           <TouchableOpacity
             style={styles.editButton}
@@ -108,30 +104,11 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* --- 2. Các thiết lập (Dựa trên hình ảnh mẫu) --- */}
         <View style={styles.settingsSection}>
-          {/* Thiết lập Bảo mật */}
-          <SettingItem
-            icon="lock-closed-outline"
-            label="Đổi Mật khẩu"
-            onPress={() => console.log("Chuyển đến màn hình đổi mật khẩu")}
-          />
-
-          {/* Chế độ Tối (Dark Mode) */}
-          <SettingItem
-            icon="moon-outline"
-            label="Chế độ Tối"
-            isToggle={true}
-            value={isDarkMode}
-            onValueChange={setIsDarkMode}
-          />
+          <SettingItem icon="lock-closed-outline" label="Đổi Mật khẩu" />
 
           {/* Hỗ trợ */}
-          <SettingItem
-            icon="headset-outline"
-            label="Trợ giúp & Hỗ trợ"
-            onPress={() => console.log("Mở trang trợ giúp")}
-          />
+          <SettingItem icon="headset-outline" label="Trợ giúp & Hỗ trợ" />
 
           {/* Đăng xuất */}
           <SettingItem
@@ -141,7 +118,6 @@ export default function ProfileScreen() {
           />
         </View>
       </ScrollView>
-      {/* Thanh Tab Bar giả định (Đã được Expo Router xử lý) */}
       <View style={styles.bottomSpacer} />
     </View>
   );
