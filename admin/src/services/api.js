@@ -27,13 +27,13 @@ export const logout = () => {
   return apiClient.post("/auth/logout");
 };
 
+export const getStats = () => {
+  return apiClient.get("/stats");
+};
+
 // ============ USERS ============
 export const getAllUsers = () => {
   return apiClient.get("/users");
-};
-
-export const getTotalUsers = () => {
-  return apiClient.get("/user")
 };
 
 export const getUserById = (id) => {
@@ -46,6 +46,10 @@ export const updateUser = (id, data) => {
 
 export const deleteUser = (id) => {
   return apiClient.delete(`/users/${id}`);
+};
+
+export const updateUserStatus = (id, data) => {
+  return apiClient.patch(`/users/${id}/status`, data);
 };
 
 // ============ FIELDS ============
@@ -65,9 +69,16 @@ export const updateField = (id, data) => {
   return apiClient.put(`/fields/${id}`, data);
 };
 
+export const deleteField = (id) => {
+  return apiClient.delete(`/fields/${id}`);
+};
+
 // ============ BOOKINGS ============
 export const getAllBookings = () => {
   return apiClient.get("/bookings");
+};
+export const getRecentBookings = () => {
+  return apiClient.get("/bookings/recent");
 };
 
 export const confirmBooking = (id) => {
@@ -76,6 +87,10 @@ export const confirmBooking = (id) => {
 
 export const cancelBooking = (id) => {
   return apiClient.put(`/bookings/cancel/${id}`);
+};
+
+export const updateBookingStatus = (id, status) => {
+  return apiClient.patch(`bookings/${id}/status`, { status });
 };
 
 // ============ NOTIFICATIONS ============

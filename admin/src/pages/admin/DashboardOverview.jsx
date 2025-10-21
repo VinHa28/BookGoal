@@ -1,45 +1,121 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
-import { Card, Row, Col, Statistic, Table } from "antd";
+import { Card, Row, Col, Statistic, Table, Tag, Dropdown, message } from "antd";
 import {
   UserOutlined,
   FieldTimeOutlined,
   CalendarOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
+import {
+  getRecentBookings,
+  getStats,
+  updateBookingStatus,
+} from "../../services/api";
 
 const DashboardOverview = () => {
   const [stats, setStats] = useState({});
   const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // ✅ tạo message instance local
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const fetchStats = async () => {
+    try {
+      const res = await getStats();
+      setStats(res.data);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchRecentBookings = async () => {
+    try {
+      const res = await getRecentBookings();
+      setBookings(res?.data?.recentBookings || []);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+    }
+  };
 
   useEffect(() => {
-    // Mock data
-    setStats({
-      totalUsers: 50,
-      totalBookings: 120,
-      totalFields: 8,
-      revenue: 25000000,
-    });
-    setBookings([
-      {
-        _id: "1",
-        field: { name: "Sân ABC" },
-        user: { username: "Nguyễn Văn A", phone: "0123456789" },
-        date: "2024-10-25",
-        timeSlot: "06:00-08:00",
-        price: 200000,
-        status: "pending",
-      },
-    ]);
+    fetchStats();
+    fetchRecentBookings();
   }, []);
 
+  const handleQuickUpdate = async (bookingId, newStatus) => {
+    try {
+      setLoading(true);
+      const res = await updateBookingStatus(bookingId, newStatus);
+      messageApi.success(`Đã cập nhật trạng thái thành "${newStatus}"`);
+      setBookings((prev) =>
+        prev.map((b) => (b._id === bookingId ? { ...b, status: newStatus } : b))
+      );
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      messageApi.error("Cập nhật thất bại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const colors = {
+    pending: "orange",
+    confirmed: "blue",
+    completed: "green",
+    cancelled: "red",
+    requestCancel: "volcano",
+  };
+
+  const statusOptions = [
+    { key: "pending", label: "Chờ xác nhận" },
+    { key: "confirmed", label: "Đã xác nhận" },
+    { key: "completed", label: "Hoàn tất" },
+    { key: "cancelled", label: "Đã hủy" },
+    { key: "requestCancel", label: "Yêu cầu hủy" },
+  ];
+
   const columns = [
-    { title: "Sân", dataIndex: ["field", "name"], key: "fieldName" },
-    { title: "Khách hàng", dataIndex: ["user", "username"], key: "username" },
+    { title: "Sân", dataIndex: "fieldName", key: "fieldName" },
+    { title: "Khách hàng", dataIndex: "user", key: "username" },
     { title: "Ngày đặt", dataIndex: "date", key: "date" },
     { title: "Giờ", dataIndex: "timeSlot", key: "timeSlot" },
+    {
+      title: "Trạng thái",
+      key: "status",
+      render: (_, record) => (
+        <Dropdown
+          menu={{
+            items: statusOptions.map((item) => ({
+              key: item.key,
+              label: item.label,
+              onClick: () => handleQuickUpdate(record._id, item.key),
+            })),
+          }}
+        >
+          <Tag
+            color={colors[record.status]}
+            style={{
+              cursor: "pointer",
+              padding: "6px 10px",
+              fontSize: "14px",
+              borderRadius: "6px",
+            }}
+          >
+            {statusOptions.find((s) => s.key === record.status)?.label ||
+              record.status}
+            <DownOutlined style={{ marginLeft: 6, fontSize: 10 }} />
+          </Tag>
+        </Dropdown>
+      ),
+    },
   ];
 
   return (
     <>
+      {contextHolder}
+
       <h2 style={{ marginBottom: 24 }}>Dashboard</h2>
       <Row gutter={16} style={{ marginBottom: 24 }}>
         <Col span={6}>
@@ -80,8 +156,15 @@ const DashboardOverview = () => {
           </Card>
         </Col>
       </Row>
+
       <Card title="Booking gần đây">
-        <Table dataSource={bookings} columns={columns} pagination={false} rowKey="_id" />
+        <Table
+          dataSource={Array.isArray(bookings) ? bookings : []}
+          columns={columns}
+          pagination={false}
+          rowKey="_id"
+          loading={loading}
+        />
       </Card>
     </>
   );

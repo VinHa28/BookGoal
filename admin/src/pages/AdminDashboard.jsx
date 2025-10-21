@@ -51,14 +51,14 @@ const AdminDashboard = ({ onLogout }) => {
             height: 64,
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
             color: "white",
             fontSize: 20,
             fontWeight: "bold",
+            paddingLeft: 24,
             borderBottom: "1px solid #ffffff20",
           }}
         >
-          ⚽ Admin Panel
+          Admin Panel
         </div>
         <Menu
           theme="dark"
