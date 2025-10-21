@@ -27,9 +27,13 @@ export const getFields = async (req, res) => {
       return {
         _id: field._id,
         name: field.name,
+        type: field.type,
         location: field.location,
-        image: field.images?.[0] || null,
+        image: field.image,
         available,
+        prices: field.prices,
+        address: field.address,
+        description: field.description,
       };
     });
     res.json(formatted);
@@ -52,7 +56,7 @@ export const getFieldById = async (req, res) => {
 // Add Field
 export const addField = async (req, res) => {
   try {
-    const { name, location, address, images, prices, description, type } =
+    const { name, location, address, image, prices, description, type } =
       req.body;
 
     if (
@@ -73,7 +77,7 @@ export const addField = async (req, res) => {
       name,
       location,
       address,
-      images: images || [],
+      image,
       prices,
       description: description || "",
       type,
@@ -92,7 +96,7 @@ export const addField = async (req, res) => {
 // Update field
 export const updateField = async (req, res) => {
   const { id } = req.params;
-  const { name, location, address, images, prices, description, type } =
+  const { name, location, address, image, prices, description, type } =
     req.body;
 
   try {
@@ -102,10 +106,10 @@ export const updateField = async (req, res) => {
     if (name) field.name = name;
     if (location) field.location = location;
     if (address) field.address = address;
-    if (Array.isArray(images)) field.images = images;
+    if (image) field.image = image;
     if (Array.isArray(prices)) field.prices = prices;
     if (description !== undefined) field.description = description;
-    if (type) field.type = type; // 🆕 cho phép update loại sân
+    if (type) field.type = type;
 
     const updatedField = await field.save();
     res
@@ -159,5 +163,19 @@ export const getAllSlots = async (req, res) => {
     res.json(allSlots);
   } catch (error) {
     res.status(500).json({ message: "Error fetching all slots", error });
+  }
+};
+
+export const deleteField = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedField = await Field.findByIdAndDelete(id);
+    if (!deletedField) {
+      return res.status(404).json({ message: "Field not found" });
+    }
+    res.status(200).json({ message: "Field deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting field", error);
+    res.status(500).json({ message: "Error deleting field", error });
   }
 };

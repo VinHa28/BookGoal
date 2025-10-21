@@ -5,18 +5,22 @@ import {
   confirmBooking,
   createBooking,
   getAllBookings,
+  getRecentBookings,
   getUserBookings,
   getUserLatestBooking,
+  updateBookingStatus,
 } from "../controllers/bookingController.js";
 
 const router = express.Router();
 
-// User booking
 router.post("/", verifyToken, createBooking);
-router.get("/my", verifyToken, getUserBookings);
-router.put("/cancel/:id", verifyToken, cancelBooking);
+router.post("/my", verifyToken, getUserBookings);
 router.get("/my-latest", verifyToken, getUserLatestBooking);
-// Admin
+router.put("/cancel/:id", verifyToken, cancelBooking);
+
 router.get("/", verifyToken, verifyAdmin, getAllBookings);
 router.put("/:id/confirm", verifyToken, verifyAdmin, confirmBooking);
+router.get("/recent", verifyToken, verifyAdmin, getRecentBookings);
+router.patch("/:id/status", verifyToken, verifyAdmin, updateBookingStatus);
+
 export default router;

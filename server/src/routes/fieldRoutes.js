@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addField,
+  deleteField,
   getAllSlots,
   getBookedSlots,
   getFieldById,
@@ -17,4 +18,5 @@ router.get("/:id/all-slots", getAllSlots);
 
 router.post("/", verifyToken, verifyAdmin, addField);
 router.put("/:id", verifyToken, verifyAdmin, updateField);
+router.delete("/:id", verifyToken, verifyAdmin, deleteField);
 export default router;

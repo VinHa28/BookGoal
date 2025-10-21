@@ -1,10 +1,11 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 
-// Lấy danh sách tất cả người dùng (chỉ admin)
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password -accessToken");
+    const users = await User.find()
+      .sort({ role: 1 })
+      .select("-password -accessToken");
     res.status(200).json(users);
   } catch (err) {
     console.error("Error getting users:", err);
@@ -12,7 +13,6 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// Lấy thông tin chi tiết 1 người dùng theo ID
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select(
@@ -28,7 +28,6 @@ export const getUserById = async (req, res) => {
   }
 };
 
-// Cập nhật người dùng (chỉ admin)
 export const updateUser = async (req, res) => {
   try {
     const { username, phone, password, role, avtUrl, status } = req.body;
@@ -42,7 +41,7 @@ export const updateUser = async (req, res) => {
     if (phone) user.phone = phone;
     if (role) user.role = role;
     if (avtUrl) user.avtUrl = avtUrl;
-    if (status) user.status = status; 
+    if (status) user.status = status;
 
     if (password) {
       const saltRounds = 10;
@@ -68,7 +67,6 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// Xóa người dùng (chỉ admin)
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -79,5 +77,38 @@ export const deleteUser = async (req, res) => {
   } catch (err) {
     console.error("Error deleting user:", err);
     res.status(500).json({ message: "Error deleting user" });
+  }
+};
+
+export const updateUserStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const userId = req.params.id;
+
+    if (!["active", "inactive"].includes(status)) {
+      return res.status(400).json({ message: "Trạng thái không hợp lệ!" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+    }
+
+    user.status = status;
+    await user.save();
+
+    res.status(200).json({
+      message: "Cập nhật trạng thái thành công!",
+      user: {
+        _id: user._id,
+        username: user.username,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+      },
+    });
+  } catch (err) {
+    console.error("Error updating user status:", err);
+    res.status(500).json({ message: "Error updating user status" });
   }
 };

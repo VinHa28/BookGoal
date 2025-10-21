@@ -12,12 +12,12 @@ const bookingSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    date: { type: String, required: true },
+    date: { type: String, required: true }, //yyyy-mm-dd
     timeSlot: { type: String, required: true },
     price: { type: Number, required: true },
     status: {
       type: String,
-      enum: ["pending", "confirmed", "cancelled", "requestCancel"],
+      enum: ["pending", "confirmed", "cancelled", "requestCancel", "completed"],
       default: "pending",
     },
   },

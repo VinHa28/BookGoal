@@ -58,6 +58,12 @@ export const login = async (req, res) => {
         .json({ message: "Thông tin đăng nhập không đúng" });
     }
 
+    if (user.role === "inactive") {
+      return res
+        .status(401)
+        .json({ message: "Tài khoản này đã bị vô hiệu hóa" });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res

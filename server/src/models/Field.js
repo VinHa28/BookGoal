@@ -5,10 +5,10 @@ const fieldSchema = new mongoose.Schema(
     name: { type: String, required: true },
     location: { type: String, required: true },
     address: { type: String, required: true },
-    images: [{ type: String }],
+    image: { type: String },
     prices: [
       {
-        timeSlot: { type: String, required: true },
+        timeSlot: { type: String, required: true }, // "07:00", "08:00", ..
         price: { type: Number, required: true },
       },
     ],
