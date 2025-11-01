@@ -1,21 +1,18 @@
-import mongoose, { Schema } from "mongoose";
-import User from "./User.js";
+import mongoose from "mongoose";
 
-const notificationSchema = mongoose.Schema(
+const notificationSchema = new mongoose.Schema(
   {
     targetType: {
       type: String,
-      enum: ["single", "all"], 
+      enum: ["single", "all"],
       required: true,
       default: "single",
     },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     title: { type: String, required: true },
     message: { type: String, required: true },
     link: { type: String },
     data: { type: mongoose.Schema.Types.Mixed },
     date: { type: Date, default: Date.now },
-
     expireAt: {
       type: Date,
       default: Date.now,
@@ -25,8 +22,4 @@ const notificationSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model(
-  "Notification",
-  notificationSchema,
-  "notifications"
-);
+export default mongoose.model("Notification", notificationSchema);

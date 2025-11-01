@@ -58,7 +58,7 @@ const AdminDashboard = ({ onLogout }) => {
             borderBottom: "1px solid #ffffff20",
           }}
         >
-          Admin Panel
+          Quản trị viên
         </div>
         <Menu
           theme="dark"

@@ -12,22 +12,29 @@ const Signup = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const phoneRegex = /^(0|\+84)[1-9]\d{8,9}$/;
+
   const handleSigup = async () => {
     if (!fullName || !phone || !password) {
       return setError("Vui lòng nhập đầy đủ thông tin");
+    }
+
+    if (!phoneRegex.test(phone.trim())) {
+      return setError(
+        "Số điện thoại không hợp lệ (VD: 0123456789 hoặc +84123456789)"
+      );
     }
 
     setError("");
     setLoading(true);
 
     try {
-      const res = await signUp(fullName, phone, password);
+      const res = await signUp(fullName.trim(), phone.trim(), password);
       Alert.alert("Thành công", res.data.message || "Đăng ký thành công", [
         { text: "OK", onPress: () => router.push("/(auth)") },
       ]);
     } catch (error) {
-      // Lấy message từ backend (do bạn đã ném { message } trong service)
-      Alert.alert("Lỗi", error.message);
+      Alert.alert("Lỗi", error.message || "Đăng ký thất bại");
     } finally {
       setLoading(false);
     }
@@ -63,9 +70,10 @@ const Signup = () => {
             <TextInput
               style={styles.input}
               placeholder="Nhập tên"
-              keyboardType="name"
+              keyboardType="default"
               placeholderTextColor="#9EA1AE"
               onChangeText={setFullName}
+              value={fullName}
             />
           </View>
 
@@ -74,8 +82,9 @@ const Signup = () => {
             <TextInput
               style={styles.input}
               placeholder="Nhập số điện thoại"
-              keyboardType="phone"
+              keyboardType="phone-pad"
               onChangeText={setPhone}
+              value={phone}
               placeholderTextColor="#9EA1AE"
             />
           </View>
@@ -87,9 +96,11 @@ const Signup = () => {
               placeholder="Nhập mật khẩu"
               secureTextEntry
               onChangeText={setPassword}
+              value={password}
               placeholderTextColor="#9EA1AE"
             />
           </View>
+
           {error ? (
             <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>
           ) : null}

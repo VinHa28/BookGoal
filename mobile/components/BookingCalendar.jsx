@@ -1,3 +1,6 @@
+import colors from "../constants/colors";
+import { useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -5,15 +8,11 @@ import {
   TouchableOpacity,
   FlatList,
 } from "react-native";
-import React, { useMemo, useState } from "react";
-import colors from "../constants/colors";
-import { Ionicons } from "@expo/vector-icons";
 
 const BookingCalendar = ({ onDateSelect }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Lấy ngày hiện tại (reset giờ về 00:00:00 để so sánh chính xác)
   const today = useMemo(() => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -183,7 +182,7 @@ const BookingCalendar = ({ onDateSelect }) => {
 
 const calendarStyles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
+    backgroundColor: "#F4F6F9",
     borderRadius: 12,
     padding: 15,
     marginBottom: 20,
@@ -244,10 +243,7 @@ const calendarStyles = StyleSheet.create({
     textAlignVertical: "center",
   },
   daySelected: {
-    backgroundColor: colors.secondary,
     borderRadius: 50,
-    borderWidth: 1,
-    borderColor: colors.primary,
   },
   dayTextSelected: {
     color: "#fff",
@@ -260,7 +256,6 @@ const calendarStyles = StyleSheet.create({
   },
   dayTextPast: {
     color: "#999",
-    textDecorationLine: "line-through",
   },
 });
 

@@ -1,43 +1,28 @@
 import api from "../config/api";
-import * as SecureStore from "expo-secure-store";
+import { getAuthHeader } from "../utils/utils";
 
-export const getUserBookings = async () => {
+export const getUserBookings = async (filters = {}) => {
   try {
-    const token = await SecureStore.getItemAsync("accessToken");
-    if (token) {
-      const res = await api.get(
-        "/bookings/my",
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      return res.data;
-    }
+    const headers = await getAuthHeader();
+    const res = await api.post("/bookings/my", filters, { headers });
+    return res.data;
   } catch (error) {
     console.error(
-      "Error fetching bookings: ",
+      "Error fetching bookings:",
       error.response?.data || error.message
     );
-
     throw error;
   }
 };
 
 export const getLatestBooking = async () => {
   try {
-    const token = await SecureStore.getItemAsync("accessToken");
-    if (token) {
-      const res = await api.get(
-        "/bookings/my-latest",
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      return res.data;
-    }
+    const headers = await getAuthHeader();
+    const res = await api.get("/bookings/my-latest", { headers });
+    return res.data;
   } catch (error) {
     console.error(
-      "Error fetching bookings: ",
+      "Error fetching latest booking:",
       error.response?.data || error.message
     );
     throw error;
@@ -46,20 +31,30 @@ export const getLatestBooking = async () => {
 
 export const createBooking = async (fieldId, date, timeSlot) => {
   try {
-    const token = await SecureStore.getItemAsync("accessToken");
-    if (token) {
-      const res = await api.post(
-        "/bookings",
-        { fieldId, date, timeSlot },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      return res.data;
-    }
+    const headers = await getAuthHeader();
+    const res = await api.post(
+      "/bookings",
+      { fieldId, date, timeSlot },
+      { headers }
+    );
+    return res.data;
   } catch (error) {
     console.error(
-      "Error creating booking: ",
+      "Error creating booking:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+export const cancelBooking = async (bookingId) => {
+  try {
+    const headers = await getAuthHeader();
+    const res = await api.put(`/bookings/cancel/${bookingId}`, {}, { headers });
+    return res.data;
+  } catch (error) {
+    console.error(
+      "Error cancelling booking:",
       error.response?.data || error.message
     );
     throw error;

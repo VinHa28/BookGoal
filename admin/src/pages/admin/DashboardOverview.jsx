@@ -1,17 +1,33 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
-import { Card, Row, Col, Statistic, Table, Tag, Dropdown, message } from "antd";
+import {
+  Card,
+  Row,
+  Col,
+  Statistic,
+  Table,
+  Tag,
+  Dropdown,
+  message,
+  Space,
+  Popconfirm,
+  Button,
+} from "antd";
 import {
   UserOutlined,
   FieldTimeOutlined,
   CalendarOutlined,
   DownOutlined,
+  CheckOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import {
   getRecentBookings,
   getStats,
   updateBookingStatus,
 } from "../../services/api";
+import dayjs from "dayjs";
+import { statusColors, statusLabels } from "../../constants";
 
 const DashboardOverview = () => {
   const [stats, setStats] = useState({});
@@ -60,54 +76,75 @@ const DashboardOverview = () => {
     }
   };
 
-  const colors = {
-    pending: "orange",
-    confirmed: "blue",
-    completed: "green",
-    cancelled: "red",
-    requestCancel: "volcano",
-  };
-
-  const statusOptions = [
-    { key: "pending", label: "Chờ xác nhận" },
-    { key: "confirmed", label: "Đã xác nhận" },
-    { key: "completed", label: "Hoàn tất" },
-    { key: "cancelled", label: "Đã hủy" },
-    { key: "requestCancel", label: "Yêu cầu hủy" },
-  ];
-
   const columns = [
-    { title: "Sân", dataIndex: "fieldName", key: "fieldName" },
-    { title: "Khách hàng", dataIndex: "user", key: "username" },
-    { title: "Ngày đặt", dataIndex: "date", key: "date" },
+    {
+      title: "Sân",
+      dataIndex: "fieldName",
+      key: "fieldName",
+    },
+    {
+      title: "Khách hàng",
+      dataIndex: "user",
+      key: "userName",
+      render: (user) => (
+        <span>
+          {user?.username} <Tag color="default">{user?.phone}</Tag>
+        </span>
+      ),
+    },
+    {
+      title: "Ngày đặt",
+      dataIndex: "date",
+      key: "date",
+      render: (date) => dayjs(date).format("DD/MM/YYYY"),
+    },
     { title: "Giờ", dataIndex: "timeSlot", key: "timeSlot" },
     {
+      title: "Giá",
+      dataIndex: "price",
+      key: "price",
+      render: (p) => (
+        <span style={{ fontWeight: "bold", color: "#333" }}>
+          {p ? p.toLocaleString() : 0} ₫
+        </span>
+      ),
+    },
+    {
       title: "Trạng thái",
+      dataIndex: "status",
       key: "status",
-      render: (_, record) => (
-        <Dropdown
-          menu={{
-            items: statusOptions.map((item) => ({
-              key: item.key,
-              label: item.label,
-              onClick: () => handleQuickUpdate(record._id, item.key),
-            })),
-          }}
-        >
-          <Tag
-            color={colors[record.status]}
-            style={{
-              cursor: "pointer",
-              padding: "6px 10px",
-              fontSize: "14px",
-              borderRadius: "6px",
-            }}
-          >
-            {statusOptions.find((s) => s.key === record.status)?.label ||
-              record.status}
-            <DownOutlined style={{ marginLeft: 6, fontSize: 10 }} />
-          </Tag>
-        </Dropdown>
+      render: (st) => (
+        <Tag color={statusColors[st] || "default"}>
+          {statusLabels[st] || st}
+        </Tag>
+      ),
+    },
+    {
+      title: "Hành động",
+      key: "action",
+      render: (_, r) => (
+        <Space size="small">
+          {(r.status === "pending" || r.status === "cancelled") && (
+            <Popconfirm
+              title="Xác nhận booking này?"
+              onConfirm={() => handleQuickUpdate(r._id, "confirmed")}
+            >
+              <Button size="small" type="primary" icon={<CheckOutlined />}>
+                Xác nhận
+              </Button>
+            </Popconfirm>
+          )}
+          {r.status === "requestCancel" && (
+            <Popconfirm
+              title="Đồng ý hủy booking này?"
+              onConfirm={() => handleQuickUpdate(r._id, "cancelled")}
+            >
+              <Button size="small" danger icon={<CloseOutlined />}>
+                Hủy
+              </Button>
+            </Popconfirm>
+          )}
+        </Space>
       ),
     },
   ];

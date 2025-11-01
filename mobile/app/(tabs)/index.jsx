@@ -5,122 +5,186 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
+  RefreshControl,
+  Image,
 } from "react-native";
-import COLORS from "../../constants/colors";
+import COLORS, { hexToRgba } from "../../constants/colors";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
-import Logo from "../../components/Logo";
 import UpcomingBookingCard from "../../components/UpcomingBookingCard.jsx";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { getFields } from "../../services/fieldService.js";
-import FiedlCard from "../../components/FiealCard";
+import FieldCard from "../../components/FieldCard.jsx";
 import { getLatestBooking } from "../../services/bookingService.js";
+import { useFocusEffect, useRouter } from "expo-router";
+import NotificationModal from "../../components/NotificationModal.jsx";
+import {
+  getNotifications,
+  getUnreadNotifications,
+} from "../../services/notificationServices.js";
+import Loading from "../../components/Loading.jsx";
 
 const HEADER_PADDING_TOP =
-  Platform.OS === "adroid" ? StatusBar.currentHeight + 10 : 30;
+  Platform.OS === "adroid" ? StatusBar.currentHeight + 10 : 20;
 
-const categories = [
-  { key: "5", label: "Sân 5" },
-  { key: "7", label: "Sân 7" },
-  { key: "11", label: "Sân 11" },
-];
 export default function Index() {
+  const router = useRouter();
   const [fields, setFields] = useState([]);
   const [latestBooking, setLatestBooking] = useState({});
   const [loading, setLoading] = useState(false);
+  const [unreadNumber, setUnreadNumber] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [openNotiModal, setOpenNotiModal] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      const unreadNumberData = await getUnreadNotifications();
+      setUnreadNumber(unreadNumberData.unreadCount);
+      setNotifications(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const fetchFields = async () => {
     try {
-      setLoading(true);
       const data = await getFields();
       setFields(data);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách sân:", error);
       Alert.alert("Lỗi", error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchLatesBooking = async () => {
     try {
-      setLoading(true);
       const data = await getLatestBooking();
       if (data) setLatestBooking(data);
     } catch (error) {
       console.error("Lỗi khi lấy booking: ", error);
       Alert.alert("Lỗi", error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const renderCategoryItem = ({ item }) => (
-    <TouchableOpacity style={styles.categoryPill}>
-      <Text style={styles.categoryText}>{item.label}</Text>
-    </TouchableOpacity>
-  );
+  const fetchData = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchFields(),
+      fetchLatesBooking(),
+      fetchNotifications(),
+    ]);
+    setLoading(false);
+  };
 
-  useEffect(() => {
-    fetchFields();
-    fetchLatesBooking();
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await Promise.all([
+      fetchFields(),
+      fetchLatesBooking(),
+      fetchNotifications(),
+    ]);
+    setIsRefreshing(false);
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.topRow}>
-          <View></View>
-          <View style={styles.logoContainer}>
-            <Logo size={40} />
+          <View>
+            <TouchableOpacity onPress={onRefresh}>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <Text
+                  style={{ color: hexToRgba("#ffffff", 0.7), fontSize: 12 }}
+                >
+                  Vị trí của bạn
+                </Text>
+                <Image
+                  source={require("../../assets/images/rectangle_down.png")}
+                  style={{
+                    objectFit: "contain",
+                  }}
+                />
+              </View>
+              <Text style={{ color: "white", fontWeight: 500 }}>
+                Hòa Lạc, Thạch Thất
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.topRowButton}>
+          <TouchableOpacity
+            style={styles.topRowButton}
+            onPress={() => {
+              setOpenNotiModal(true);
+            }}
+          >
             <Ionicons name="notifications-outline" size={24} color="white" />
+            {unreadNumber !== 0 && (
+              <Text style={styles.numberNotification}>{unreadNumber}</Text>
+            )}
           </TouchableOpacity>
         </View>
 
         <View style={styles.userLocation}>
           <Ionicons name="location-outline" color={"white"} size={24} />
-          <Text style={{ color: "white" }}> Địa chỉ chỗ này</Text>
+          <Text style={{ color: "white" }}> {"userAddress"}</Text>
         </View>
       </View>
       {/* Content */}
       {loading ? (
-        <Text>Loading...</Text>
+        <Loading />
       ) : (
-        <ScrollView style={styles.contentContainer}>
-          {/* Categories */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Tìm kiếm nhanh</Text>
-            </View>
-            <FlatList
-              data={categories}
-              horizontal
-              keyExtractor={(item, index) => index.toString()}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoryList}
-              renderItem={renderCategoryItem}
-            />
-          </View>
-
+        <ScrollView
+          style={styles.contentContainer}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
+        >
           {/* Near Me */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Sân bóng gần bạn</Text>
-              <TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 8,
+                  alignItems: "center",
+                }}
+                onPress={() => router.replace("/(tabs)/field")}
+              >
                 <Text style={styles.seeAll}>Xem tất cả</Text>
+                <Image
+                  source={require("../../assets/images/rectangle_right.png")}
+                  style={{
+                    width: 7,
+                    height: 9,
+                    marginTop: 3,
+                    objectFit: "contain",
+                  }}
+                />
               </TouchableOpacity>
             </View>
 
             <FlatList
               data={fields}
-              renderItem={({ item }) => <FiedlCard field={item} />}
+              renderItem={({ item }) => <FieldCard field={item} />}
               keyExtractor={(item, index) =>
                 item._id?.toString() || item.id?.toString() || index.toString()
               }
@@ -129,24 +193,60 @@ export default function Index() {
               contentContainerStyle={{}}
             />
           </View>
-
           {/* Upcoming Booking */}
-
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Lịch đặt sân sắp tới</Text>
-              <TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 8,
+                  alignItems: "center",
+                }}
+                onPress={() => router.replace("/(tabs)/booking")}
+              >
                 <Text style={styles.seeAll}>Xem tất cả</Text>
+                <Image
+                  source={require("../../assets/images/rectangle_right.png")}
+                  style={{
+                    width: 7,
+                    height: 9,
+                    marginTop: 3,
+                    objectFit: "contain",
+                  }}
+                />
               </TouchableOpacity>
             </View>
-            {Object.keys(latestBooking).length === 0 ? (
+            {Object.keys(latestBooking).length === 0 ||
+            (Array.isArray(latestBooking) && latestBooking.length === 0) ? (
               <Text style={{ fontStyle: "italic" }}>
                 Chưa có lịch đặt sân nào sắp tới
               </Text>
             ) : (
-              <UpcomingBookingCard booking={latestBooking} />
+              <FlatList
+                data={
+                  Array.isArray(latestBooking) ? latestBooking : [latestBooking]
+                }
+                renderItem={({ item }) => (
+                  <UpcomingBookingCard booking={item} />
+                )}
+                keyExtractor={(item, index) =>
+                  item._id?.toString() ||
+                  item.id?.toString() ||
+                  index.toString()
+                }
+                showsVerticalScrollIndicator={false}
+                vertical
+                scrollEnabled={false}
+              />
             )}
           </View>
+          <NotificationModal
+            open={openNotiModal}
+            setOpen={setOpenNotiModal}
+            notificationList={notifications}
+          />
         </ScrollView>
       )}
     </View>
@@ -160,13 +260,25 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 20,
-
+    paddingHorizontal: 16,
     paddingTop: HEADER_PADDING_TOP,
-    paddingBottom: 24,
-    borderBottomRightRadius: 30,
-    borderBottomLeftRadius: 30,
   },
+
+  numberNotification: {
+    color: COLORS.tertiaryBrand,
+    position: "absolute",
+    left: 20,
+    top: "-3",
+    backgroundColor: "white",
+    textAlign: "center",
+    lineHeight: 16,
+    fontSize: 12,
+    fontWeight: "600", // Fix style string
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+  },
+
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -184,6 +296,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingBottom: 15,
   },
   userLocationText: {
     color: "#fff",
@@ -202,7 +315,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 20,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   sectionHeader: {
     flexDirection: "row",
@@ -211,14 +324,13 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   sectionTitle: {
-    fontWeight: 500,
+    fontWeight: "500",
     color: COLORS.text,
     fontSize: 16,
   },
   seeAll: {
     fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: "500",
+    color: COLORS.subtleText,
   },
 
   // Categories
@@ -237,6 +349,6 @@ const styles = StyleSheet.create({
   categoryText: {
     color: "white",
     fontSize: 16,
-    fontWeight: 300,
+    fontWeight: "300", // Fix style string
   },
 });

@@ -1,5 +1,5 @@
 import { jwtDecode } from "jwt-decode";
-
+import * as SecureStore from "expo-secure-store";
 export const isTokenExpired = (token) => {
   try {
     const decoded = jwtDecode(token);
@@ -26,3 +26,17 @@ export function formatDateToYYYYMMDD(dateObject) {
 
   return `${year}-${formattedMonth}-${formattedDay}`;
 }
+
+export const getAuthHeader = async () => {
+  const token = await SecureStore.getItemAsync("accessToken");
+  if (!token) throw new Error("Missing access token");
+  return { Authorization: `Bearer ${token}` };
+};
+
+export const formatCurrency = (amount) => {
+  if (typeof amount !== "number") return "N/A";
+  return amount.toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  });
+};

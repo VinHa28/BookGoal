@@ -12,7 +12,7 @@ const bookingSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    date: { type: String, required: true }, //yyyy-mm-dd
+    date: { type: String, required: true },
     timeSlot: { type: String, required: true },
     price: { type: Number, required: true },
     status: {

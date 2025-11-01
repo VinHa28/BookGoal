@@ -1,7 +1,10 @@
 import Booking from "../models/Booking.js";
+import Notification from "../models/Notification.js";
+import User from "../models/User.js";
+import UserNotification from "../models/UserNotification.js";
 
 export const autoUpdateExpiredBookings = async () => {
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const today = new Date().toISOString().split("T")[0]; 
   const cancelledResult = await Booking.updateMany(
     { date: { $lt: today }, status: "pending" },
     { $set: { status: "cancelled" } }
@@ -20,5 +23,43 @@ export const autoUpdateExpiredBookings = async () => {
     console.log(
       `Auto-completed ${completedResult.modifiedCount} expired bookings`
     );
+  }
+};
+
+export const createNotification = async ({
+  targetType = "single",
+  userId,
+  title,
+  message,
+  link,
+  data,
+}) => {
+  try {
+    const notification = await Notification.create({
+      targetType,
+      title,
+      message,
+      message,
+      link,
+      data,
+    });
+
+    if (targetType === "all") {
+      const user = await User.find({}, "_id");
+      const userNotifitions = user.map((u) => ({
+        userId: u._id,
+        notification: notification._id,
+      }));
+      await UserNotification.insertMany(userNotifitions);
+    } else if (targetType === "single" && userId) {
+      await UserNotification.create({
+        userId,
+        notificationId: notification._id,
+      });
+    }
+    return notification;
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    throw new Error("Không thể tạo thông báo");
   }
 };

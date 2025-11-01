@@ -10,20 +10,18 @@ import {
   Platform,
   ScrollView,
   Alert,
-  BackHandler, // Dùng để thông báo lỗi hoặc yêu cầu quyền
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker"; // 💡 Import thư viện ImagePicker
+import * as ImagePicker from "expo-image-picker";
 import colors from "../../../constants/colors";
 import BackHeader from "../../../components/BackHeader";
 
-// Khởi tạo dữ liệu người dùng mẫu
 const initialProfile = {
-  fullName: "Ebenezer Omosuli",
-  email: "ebenux123@gmail.com",
+  fullName: "Hà Văn Vinh",
+  email: "vinhhv28@gmail.xom",
   tag: "eben",
-  avatarUrl: "https://i.imgur.com/8f10j7T.png", // URL ảnh 3D mẫu
+  avatarUrl: "https://i.imgur.com/8f10j7T.png",
 };
 
 const EditProfileScreen = ({ navigation }) => {
@@ -33,9 +31,7 @@ const EditProfileScreen = ({ navigation }) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
-  // --- Hàm xử lý chọn ảnh ---
   const handleImagePick = async () => {
-    // 1. Yêu cầu quyền truy cập thư viện ảnh (chỉ cần thiết trên iOS/Web trong một số trường hợp)
     if (Platform.OS !== "web") {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -48,19 +44,17 @@ const EditProfileScreen = ({ navigation }) => {
       }
     }
 
-    // 2. Mở thư viện ảnh
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, // Cho phép người dùng crop (cắt) ảnh
-      aspect: [1, 1], // Tỷ lệ 1:1 (hình vuông)
-      quality: 1, // Chất lượng ảnh
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
     });
 
     if (!result.canceled) {
-      // 3. Cập nhật URL ảnh mới vào state
       setProfile((prev) => ({
         ...prev,
-        avatarUrl: result.assets[0].uri, // Lấy URI của ảnh đã chọn
+        avatarUrl: result.assets[0].uri,
       }));
     }
   };
@@ -74,19 +68,16 @@ const EditProfileScreen = ({ navigation }) => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -200}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Avatar và nút chỉnh sửa */}
           <View style={styles.avatarContainer}>
             <Image
               source={{ uri: profile.avatarUrl }}
               style={styles.avatar}
-              // Thêm defaultSource để tránh crash khi URI không hợp lệ
               defaultSource={
                 Platform.OS === "web"
                   ? null
                   : require("../../../assets/images/avatar.png")
               }
             />
-            {/* 💡 Gắn hàm handleImagePick vào sự kiện onPress */}
             <TouchableOpacity
               style={styles.cameraIcon}
               onPress={handleImagePick}
@@ -95,9 +86,7 @@ const EditProfileScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Form nhập liệu */}
           <View style={styles.form}>
-            {/* Full Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Full name</Text>
               <TextInput
@@ -144,7 +133,6 @@ const EditProfileScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  // ... (Giữ nguyên các style đã có)
   container: { flex: 1, backgroundColor: "#fff" },
   keyboardAvoidingContainer: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingHorizontal: 20, paddingTop: 10 },

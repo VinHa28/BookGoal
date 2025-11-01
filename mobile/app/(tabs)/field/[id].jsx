@@ -20,6 +20,7 @@ import BookingCalendar from "../../../components/BookingCalendar";
 import { getAllSlots, getFieldById } from "../../../services/fieldService";
 import { formatDateToYYYYMMDD } from "../../../utils/utils";
 import { createBooking } from "../../../services/bookingService";
+import Loading from "../../../components/Loading";
 
 const { height, width } = Dimensions.get("window");
 
@@ -130,7 +131,7 @@ export default function FieldDetailScreen() {
       <View style={detailStyles.container}>
         <BackHeader />
         <ScrollView style={detailStyles.scrollContent}>
-          <Text>Loading...</Text>
+          <Loading />
           <View style={{ height: 100 }} />
         </ScrollView>
       </View>
@@ -255,7 +256,7 @@ export default function FieldDetailScreen() {
 const detailStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "white",
   },
   scrollContent: {
     flex: 1,

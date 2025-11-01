@@ -100,30 +100,27 @@ const BookingManagement = () => {
     }
   };
 
-  // Mở Modal từ chối yêu cầu hủy
   const handleRejectCancel = (record) => {
     setCurrentBooking(record);
     form.resetFields();
-    // Set giá trị mặc định cho Modal
     form.setFieldsValue({
       message: `Yêu cầu hủy đặt sân của bạn tại ${
         record.field.name
       } vào ${dayjs(record.date).format("DD/MM/YYYY")} (${
         record.timeSlot
-      }) không được chấp nhận. Sân vẫn được giữ cho bạn. Vui lòng liên hệ quản lý để biết thêm chi tiết.`,
+      }) không được chấp nhận. Sân vẫn được giữ cho bạn. Vui lòng liên hệ quản lý để biết thêm chi tiết. (SDT: ${
+        JSON.parse(localStorage.getItem("user")).phone
+      })`,
     });
     setIsModalVisible(true);
   };
 
-  // Gửi thông báo từ chối và cập nhật trạng thái về confirmed
   const handleSendRejection = async (values) => {
     try {
       const { message: rejectMessage } = values;
 
-      // 1. Cập nhật trạng thái booking: 'requestCancel' -> 'confirmed'
       await updateBookingStatus(currentBooking._id, "confirmed");
 
-      // 2. Gửi thông báo từ chối cho người dùng
       await createNotification({
         targetType: "single",
         userId: currentBooking.user._id,
@@ -146,15 +143,11 @@ const BookingManagement = () => {
     }
   };
 
-  // Logic lọc và tìm kiếm
   const filteredBookings = bookings.filter((b) => {
-    // 1. Lọc theo trạng thái
     const statusMatch = filterStatus === "all" || b.status === filterStatus;
-
-    // 2. Lọc theo từ khóa tìm kiếm
     const lowerSearch = searchText.toLowerCase();
     const searchMatch =
-      !searchText || // Nếu không có searchText thì coi như match
+      !searchText ||
       b.field?.name.toLowerCase().includes(lowerSearch) ||
       b.user?.username.toLowerCase().includes(lowerSearch) ||
       b.user?.phone.includes(lowerSearch);
@@ -162,7 +155,6 @@ const BookingManagement = () => {
     return statusMatch && searchMatch;
   });
 
-  // Định nghĩa cột cho Table
   const columns = [
     {
       title: "Sân",
@@ -213,7 +205,6 @@ const BookingManagement = () => {
       render: (_, r) => (
         <Space size="small">
           {r.status === "requestCancel" ? (
-            // Logic cho trạng thái Yêu cầu hủy
             <>
               <Popconfirm
                 title="Đồng ý hủy booking này (Cancelled)?"
@@ -239,7 +230,6 @@ const BookingManagement = () => {
               </Button>
             </>
           ) : r.status === "pending" ? (
-            // Logic cho trạng thái Đang chờ
             <Popconfirm
               title="Xác nhận booking này?"
               onConfirm={() => handleConfirm(r._id)}
@@ -251,7 +241,6 @@ const BookingManagement = () => {
               </Button>
             </Popconfirm>
           ) : (
-            // Nút Hủy chung (nếu cần cho confirmed)
             r.status !== "cancelled" &&
             r.status !== "completed" && (
               <Popconfirm
@@ -293,7 +282,6 @@ const BookingManagement = () => {
             style={{ width: 300 }}
           />
 
-          {/* Component Filter theo Status */}
           <Select
             value={filterStatus}
             onChange={setFilterStatus}
@@ -316,14 +304,13 @@ const BookingManagement = () => {
         </Space>
       </div>
       <Table
-        dataSource={filteredBookings} // Sử dụng dữ liệu đã lọc và tìm kiếm
+        dataSource={filteredBookings}
         columns={columns}
         rowKey="_id"
         loading={loading}
         scroll={{ x: "max-content" }}
       />
 
-      {/* Modal tạo thông báo từ chối hủy */}
       <Modal
         title={`Từ chối yêu cầu hủy (${
           currentBooking?.user?.username || "Khách hàng"
@@ -338,11 +325,7 @@ const BookingManagement = () => {
         okText="Gửi thông báo & Giữ Booking"
         cancelText="Hủy"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSendRejection}
-        >
+        <Form form={form} layout="vertical" onFinish={handleSendRejection}>
           <Form.Item
             label="Nội dung thông báo gửi đến khách hàng"
             name="message"

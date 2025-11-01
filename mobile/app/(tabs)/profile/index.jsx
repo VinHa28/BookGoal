@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
   Platform,
   Switch,
   Image,
@@ -14,14 +13,6 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import COLORS from "../../../constants/colors.js";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import { useRouter } from "expo-router";
-
-const { width } = Dimensions.get("window");
-
-const mockUser = {
-  username: "Hà Văn Vinh",
-  phone: "0987654321",
-  avatar: "https://placehold.co/100x100/CCCCCC/5e56d4?text=NA",
-};
 
 const SettingItem = ({
   icon,
