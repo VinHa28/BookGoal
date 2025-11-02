@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TextInput,
-  Image,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -12,50 +11,31 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 import colors from "../../../constants/colors";
 import BackHeader from "../../../components/BackHeader";
-
-const initialProfile = {
-  fullName: "Hà Văn Vinh",
-  email: "vinhhv28@gmail.xom",
-  tag: "eben",
-  avatarUrl: "https://i.imgur.com/8f10j7T.png",
-};
+import { useAuth } from "../../../context/AuthContext";
+import { getUserInfo, updateUser } from "../../../services/authServices";
 
 const EditProfileScreen = ({ navigation }) => {
-  const [profile, setProfile] = useState(initialProfile);
-
-  const handleInputChange = (field, value) => {
-    setProfile((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleImagePick = async () => {
-    if (Platform.OS !== "web") {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Lỗi quyền truy cập",
-          "Bạn cần cấp quyền truy cập thư viện ảnh để thay đổi avatar."
-        );
-        return;
-      }
+  const { user, setUser } = useAuth();
+  const [fullname, setFullName] = useState(user ? user.username : "");
+  const fetchUser = async () => {
+    try {
+      const data = await getUserInfo(user._id);
+      setUser(data);
+    } catch (error) {
+      console.error(error);
     }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setProfile((prev) => ({
-        ...prev,
-        avatarUrl: result.assets[0].uri,
-      }));
+  };
+  const hanldeUpdate = async () => {
+    try {
+      const data = await updateUser(user._id, fullname);
+      if (data)
+        Alert.alert("Thành công", "Cập nhập thông tin người dùng thành công.");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      fetchUser();
     }
   };
 
@@ -68,31 +48,15 @@ const EditProfileScreen = ({ navigation }) => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -200}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={{ uri: profile.avatarUrl }}
-              style={styles.avatar}
-              defaultSource={
-                Platform.OS === "web"
-                  ? null
-                  : require("../../../assets/images/avatar.png")
-              }
-            />
-            <TouchableOpacity
-              style={styles.cameraIcon}
-              onPress={handleImagePick}
-            >
-              <Ionicons name="camera" size={20} color="white" />
-            </TouchableOpacity>
-          </View>
-
           <View style={styles.form}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Full name</Text>
               <TextInput
                 style={styles.input}
-                value={profile.fullName}
-                onChangeText={(text) => handleInputChange("fullName", text)}
+                value={fullname}
+                onChangeText={(text) => {
+                  setFullName(text);
+                }}
                 autoCapitalize="words"
               />
               <View style={styles.inputUnderline} />
@@ -100,13 +64,13 @@ const EditProfileScreen = ({ navigation }) => {
 
             {/* Email address */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email address</Text>
+              <Text style={styles.label}>Số điện thoại</Text>
               <TextInput
-                style={styles.input}
-                value={profile.email}
-                onChangeText={(text) => handleInputChange("email", text)}
-                keyboardType="email-address"
+                style={[styles.input, { opacity: 0.5 }]}
+                value={user ? user.phone : ""}
+                keyboardType="phone-pad"
                 autoCapitalize="none"
+                editable={false}
               />
               <View style={styles.inputUnderline} />
             </View>
@@ -122,6 +86,7 @@ const EditProfileScreen = ({ navigation }) => {
                 marginHorizontal: "auto",
                 marginTop: 30,
               }}
+              onPress={hanldeUpdate}
             >
               <Text style={{ color: "#fff", textAlign: "center" }}>Lưu</Text>
             </TouchableOpacity>

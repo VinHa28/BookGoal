@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     router.replace("/(auth)");
   };
-  const value = { user, loading, login, logout };
+  const value = { user, loading, login, logout, setUser };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

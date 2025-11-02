@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   Image,
   Alert,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "../../../constants/colors";
 import BackHeader from "../../../components/BackHeader";
@@ -30,8 +30,6 @@ const amenities = [
   { icon: "car-side", label: "Bãi đỗ xe" },
   { icon: "storefront-outline", label: "Căn-tin" },
 ];
-
-// --- KẾT THÚC COMPONENT LỊCH MỚI ---
 
 export default function FieldDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -140,16 +138,14 @@ export default function FieldDetailScreen() {
     <View style={detailStyles.container}>
       <BackHeader />
       <ScrollView style={detailStyles.scrollContent}>
-        {/* 1. Khu vực Hình ảnh/Map (Placeholder) */}
         <View style={{ marginBottom: 16 }}>
           <Image
             source={{
-              uri: field?.images?.[0] || "https://via.placeholder.com/400x200",
+              uri: field.image || "",
             }}
             style={detailStyles.imagePlaceholder}
           />
         </View>
-        {/* 2. Chi tiết Sân */}
         <View style={detailStyles.section}>
           <Text style={detailStyles.fieldName}>{field.name}</Text>
 

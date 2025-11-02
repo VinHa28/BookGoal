@@ -126,7 +126,7 @@ const BookingManagement = () => {
         userId: currentBooking.user._id,
         title: "Yêu cầu hủy đặt sân bị từ chối",
         message: rejectMessage,
-        link: `/bookings/${currentBooking._id}`,
+        link: `/booking/${currentBooking._id}`,
       });
 
       messageApi.success(

@@ -78,45 +78,34 @@ export const getUserBookings = async (req, res) => {
   try {
     await autoUpdateExpiredBookings();
 
-    const { search, fromDate, toDate, status } = req.body;
+    const { date } = req.body;
     const filter = { user: req.user.id };
 
-    if (fromDate || toDate) {
-      filter.date = {};
-      if (fromDate) filter.date.$gte = fromDate;
-      if (toDate) filter.date.$lte = toDate;
+    if (date) {
+      filter.date = date;
     }
 
-    if (status && status !== "all") {
-      filter.status = status;
-    }
-
-    if (search && search.trim() !== "") {
-      const searchRegex = new RegExp(search, "i");
-      const fields = await Field.find({
-        $or: [{ name: searchRegex }, { location: searchRegex }],
-      }).select("_id");
-
-      filter.$or = [
-        { field: { $in: fields.map((f) => f._id) } },
-        { date: searchRegex },
-        { status: searchRegex },
-      ];
-    }
-
-    let bookings = await Booking.find(filter)
-      .populate("field", "name location")
-      .lean();
+    let bookings = await Booking.find(filter).populate("field").lean();
 
     bookings.sort((a, b) => {
-      const dateDiff = new Date(b.date) - new Date(a.date);
+      const dateDiff = b.date.localeCompare(a.date);
       if (dateDiff !== 0) return dateDiff;
 
       const getStartTime = (slot) => slot.split(" - ")[0];
       return getStartTime(a.timeSlot).localeCompare(getStartTime(b.timeSlot));
     });
 
-    res.status(200).json(bookings);
+    const formatted = bookings.map((b) => ({
+      _id: b._id,
+      fieldName: b.field?.name,
+      location: b.field?.location,
+      date: b.date,
+      timeSlot: b.timeSlot,
+      price: b.price,
+      status: b.status,
+    }));
+
+    res.status(200).json(formatted);
   } catch (error) {
     console.error("Error fetching user bookings:", error);
     res.status(500).json({ message: "Error fetching user bookings" });
@@ -132,7 +121,6 @@ export const getUserLatestBooking = async (req, res) => {
     const month = String(today.getMonth() + 1).padStart(2, "0");
     const day = String(today.getDate()).padStart(2, "0");
     const todayString = `${year}-${month}-${day}`;
-    console.log(todayString);
 
     const todayBookings = await Booking.find({
       user: req.user.id,
@@ -140,7 +128,6 @@ export const getUserLatestBooking = async (req, res) => {
     })
       .sort({ timeSlot: 1 })
       .populate("field", "name location");
-    console.log(todayBookings);
     if (todayBookings.length > 0) {
       const formatted = todayBookings.map((b) => ({
         _id: b._id,
@@ -227,7 +214,7 @@ export const cancelBooking = async (req, res) => {
     const userId = req.user.id;
     const isAdmin = req.user.role === "admin";
 
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findById(id).populate("field");
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
@@ -414,5 +401,58 @@ export const updateBookingStatus = async (req, res) => {
     res
       .status(500)
       .json({ message: "Lỗi server khi cập nhật trạng thái booking" });
+  }
+};
+
+export const getBookingById = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate("field", "name location address image")
+      .lean();
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    res.json(booking);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching booking", error });
+  }
+};
+
+export const requestCancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const booking = await Booking.findById(id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.user.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ message: "Forbidden: You do not own this booking" });
+    }
+
+    if (booking.status === "requestCancel") {
+      booking.status = "confirmed";
+      await booking.save();
+      return res
+        .status(200)
+        .json({ request: false, message: "Đã hủy yêu cầu" });
+    }
+
+    if (booking.status === "confirmed") {
+      booking.status = "requestCancel";
+      await booking.save();
+      return res
+        .status(200)
+        .json({ request: true, message: "Đã yêu cầu hủy đặt sân" });
+    }
+
+    return res
+      .status(400)
+      .json({ message: "Không thể yêu cầu hủy ở trạng thái hiện tại" });
+  } catch (error) {
+    console.error("Error server:", error);
+    res.status(500).json({ message: "Error server" });
   }
 };

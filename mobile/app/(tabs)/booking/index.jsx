@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
-  View,
   Text,
   FlatList,
   StyleSheet,
@@ -14,41 +13,31 @@ import COLORS from "../../../constants/colors.js";
 import UpcomingBookingCard from "../../../components/UpcomingBookingCard.jsx";
 import BookingCalendar from "../../../components/BookingCalendar.jsx";
 import Loading from "../../../components/Loading.jsx";
+import { formatDateToYYYYMMDD } from "../../../utils/utils.js";
 
 const UserBookingsScreen = () => {
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const fetchBookings = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) setIsLoading(true);
+  const fetchBookings = async () => {
+    setIsLoading(true);
     try {
-      const data = await getUserBookings();
+      const data = await getUserBookings(formatDateToYYYYMMDD(selectedDate));
       setBookings(data);
-    } catch (err) {
-      console.error("Lỗi khi fetch bookings:", err);
+    } catch (error) {
+      console.error(error);
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
-  }, []);
-
+  };
   useEffect(() => {
-    fetchBookings(false);
-  }, [fetchBookings]);
+    fetchBookings();
+  }, [selectedDate]);
 
   const onRefresh = () => {
-    setIsRefreshing(true);
     fetchBookings(true);
   };
-
-  if (isLoading && !isRefreshing) {
-    return (
-      <View>
-        <Loading />
-      </View>
-    );
-  }
 
   return (
     <ScrollView
@@ -59,7 +48,6 @@ const UserBookingsScreen = () => {
       }}
       refreshControl={
         <RefreshControl
-          refreshing={isRefreshing}
           onRefresh={onRefresh}
           colors={[COLORS.primary]}
           tintColor={COLORS.primary}
@@ -76,15 +64,18 @@ const UserBookingsScreen = () => {
       >
         Lịch sử đặt sân
       </Text>
-      <BookingCalendar />
-
-      <FlatList
-        data={bookings}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <UpcomingBookingCard booking={item} />}
-        contentContainerStyle={styles.listContainer}
-        scrollEnabled={false}
-      />
+      <BookingCalendar onDateSelect={setSelectedDate} selectInPast={true} />
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <FlatList
+          data={bookings}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => <UpcomingBookingCard booking={item} />}
+          contentContainerStyle={styles.listContainer}
+          scrollEnabled={false}
+        />
+      )}
     </ScrollView>
   );
 };

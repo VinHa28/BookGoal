@@ -9,7 +9,7 @@ import {
   FlatList,
 } from "react-native";
 
-const BookingCalendar = ({ onDateSelect }) => {
+const BookingCalendar = ({ onDateSelect, selectInPast = false }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -75,15 +75,19 @@ const BookingCalendar = ({ onDateSelect }) => {
   };
 
   const handleDayPress = (day) => {
-    if (day && !isPastDay(day)) {
-      const newDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        day
-      );
-      setSelectedDate(newDate);
-      onDateSelect(newDate);
-    }
+    if (!day) return;
+
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      day
+    );
+
+    // ❗ Chỉ chặn chọn ngày trong quá khứ nếu selectInPast = false
+    if (!selectInPast && newDate < today) return;
+
+    setSelectedDate(newDate);
+    onDateSelect(newDate);
   };
 
   const isDaySelected = (day) => {
@@ -149,6 +153,8 @@ const BookingCalendar = ({ onDateSelect }) => {
           const isPast = isPastDay(day);
           const isSelected = isDaySelected(day);
 
+          const disabled = !day || (!selectInPast && isPast);
+
           return (
             <TouchableOpacity
               style={[
@@ -158,7 +164,7 @@ const BookingCalendar = ({ onDateSelect }) => {
                 isPast && calendarStyles.dayPast,
               ]}
               onPress={() => handleDayPress(day)}
-              disabled={!day || isPast}
+              disabled={disabled}
             >
               {day && (
                 <Text
@@ -250,7 +256,6 @@ const calendarStyles = StyleSheet.create({
     fontWeight: "bold",
     backgroundColor: colors.primary,
   },
-  // Styles mới cho ngày quá khứ
   dayPast: {
     opacity: 0.3,
   },

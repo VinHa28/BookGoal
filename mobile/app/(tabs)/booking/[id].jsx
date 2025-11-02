@@ -4,17 +4,90 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  StyleSheet, // Import StyleSheet
+  StyleSheet,
+  Linking,
+  Alert, // Import StyleSheet
 } from "react-native";
 import BackHeader from "../../../components/BackHeader";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Loading from "../../../components/Loading";
 import { Ionicons } from "@expo/vector-icons";
 import colors, { hexToRgba } from "../../../constants/colors";
 import { formatCurrency } from "../../../utils/utils";
+import { useLocalSearchParams } from "expo-router";
+import {
+  cancelBooking,
+  getBookingById,
+  requestCancelBooking,
+} from "../../../services/bookingService";
+import { BOOKING_STATUS } from "../../../constants";
 
 const BookingDetail = () => {
+  const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(false);
+  const [booking, setBooking] = useState({});
+  const dateObject = new Date(booking.date);
+
+  const fetchBooking = async () => {
+    try {
+      const data = await getBookingById(id);
+      setBooking(data);
+    } catch (error) {
+      console.error("Error fetching booking!", error);
+    }
+  };
+
+  const openMap = () => {
+    const url = booking.field?.address || "";
+    Linking.openURL(url);
+  };
+  const handleCancelBooking = async () => {
+    try {
+      const res = await cancelBooking(booking._id);
+      if (res)
+        Alert.alert(
+          "Thành công",
+          `Lịch đặt sân ${booking.field?.name} vào lúc ${
+            booking.timeSlot
+          } ${dateObject.toLocaleDateString("vi-VN", {
+            weekday: "long",
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+          })} đã được hủy.`
+        );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      fetchBooking();
+    }
+  };
+
+  const hanldeRequestCancel = async () => {
+    try {
+      const res = await requestCancelBooking(booking._id);
+      console.log(res);
+      if (res) {
+        const message = `Yêu cầu hủy đặt sân ${booking.field?.name} vào lúc ${
+          booking.timeSlot
+        } ${dateObject.toLocaleDateString("vi-VN", {
+          weekday: "long",
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+        })} đã được ${res.request ? "gửi, chờ xác nhận." : "hủy"}`;
+        Alert.alert("Thành công", message);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      fetchBooking();
+    }
+  };
+
+  useEffect(() => {
+    fetchBooking();
+  }, [id]);
 
   if (loading)
     return (
@@ -35,12 +108,14 @@ const BookingDetail = () => {
       <ScrollView>
         <View>
           <Image
-            source={require("../../../assets/images/image_7.png")}
+            source={{
+              uri: booking.field?.image || "",
+            }}
             style={styles.image}
           />
         </View>
         <View style={styles.contentWrapper}>
-          <Text style={styles.title}>Sân bóng Hoàng Gia</Text>
+          <Text style={styles.title}>{booking.field?.name || ""}</Text>
           <View style={styles.infoSection}>
             {/* Date/Time Row */}
             <View style={styles.infoRow}>
@@ -52,8 +127,15 @@ const BookingDetail = () => {
                 />
               </View>
               <View>
-                <Text style={styles.infoMainText}>10 December, 2023</Text>
-                <Text style={styles.infoSubText}>Tuesday, 4:00PM - 9:00PM</Text>
+                <Text style={styles.infoMainText}>
+                  {dateObject.toLocaleDateString("vi-VN", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                  })}
+                </Text>
+                <Text style={styles.infoSubText}>{booking.timeSlot || ""}</Text>
               </View>
             </View>
 
@@ -62,8 +144,10 @@ const BookingDetail = () => {
               <View style={styles.iconContainer}>
                 <Ionicons name="map-outline" size={25} color={colors.primary} />
               </View>
-              <TouchableOpacity style={styles.mapTouchable}>
-                <Text style={styles.infoMainText}>Gala Convention Center</Text>
+              <TouchableOpacity style={styles.mapTouchable} onPress={openMap}>
+                <Text style={styles.infoMainText}>
+                  {booking.field?.location || "Xem trên bản đồ"}
+                </Text>
                 <Ionicons
                   name="arrow-forward-circle-outline"
                   size={20}
@@ -84,7 +168,7 @@ const BookingDetail = () => {
               </View>
               <View style={styles.priceContainer}>
                 <Text style={styles.infoMainText}>
-                  {formatCurrency(150000)}
+                  {formatCurrency(booking.price)}
                 </Text>
               </View>
             </View>
@@ -92,14 +176,53 @@ const BookingDetail = () => {
             {/* Status Row */}
             <View style={styles.statusRow}>
               <Text style={styles.statusLabel}>Trạng thái:</Text>
-              <Text style={styles.statusBadge}>Chờ xác nhận</Text>
+              <Text
+                style={[
+                  styles.statusBadge,
+                  booking.status === "pending"
+                    ? styles.pendding
+                    : booking.status === "cancelled"
+                    ? styles.cancelled
+                    : booking.status === "confirmed"
+                    ? styles.confirmed
+                    : booking.status === "completed"
+                    ? styles.completed
+                    : styles.requestCancel,
+                ]}
+              >
+                {BOOKING_STATUS[booking.status]}
+              </Text>
             </View>
           </View>
         </View>
       </ScrollView>
-      <TouchableOpacity style={styles.cancelButton}>
-        <Text style={styles.cancelButtonText}>Hủy yêu cầu</Text>
-      </TouchableOpacity>
+
+      {booking.status === "requestCancel" && (
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={hanldeRequestCancel}
+        >
+          <Text style={styles.cancelButtonText}>Hủy yêu cầu</Text>
+        </TouchableOpacity>
+      )}
+
+      {booking.status === "confirmed" && (
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={hanldeRequestCancel}
+        >
+          <Text style={styles.cancelButtonText}>Yêu cầu hủy</Text>
+        </TouchableOpacity>
+      )}
+
+      {booking.status === "pending" && (
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={handleCancelBooking}
+        >
+          <Text style={styles.cancelButtonText}>Hủy đặt sân</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -183,10 +306,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingHorizontal: 22,
     paddingVertical: 8,
-    backgroundColor: hexToRgba(colors.requestCancel, 0.12),
     borderRadius: 7,
     fontWeight: "500",
+  },
+  requestCancel: {
     color: colors.requestCancel,
+    backgroundColor: hexToRgba(colors.requestCancel, 0.12),
+  },
+  pendding: {
+    color: colors.pendding,
+    backgroundColor: hexToRgba(colors.pendding, 0.12),
+  },
+  confirmed: {
+    color: colors.confirmed,
+    backgroundColor: hexToRgba(colors.confirmed, 0.12),
+  },
+  cancelled: {
+    color: colors.cancelled,
+    backgroundColor: hexToRgba(colors.cancelled, 0.12),
+  },
+  completed: {
+    color: colors.completed,
+    backgroundColor: hexToRgba(colors.completed, 0.12),
   },
   cancelButton: {
     position: "absolute",

@@ -6,12 +6,19 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  Image,
 } from "react-native";
 import NotificationCard from "./NotificationCard";
 
 const NotificationWarning = () => {
   return (
     <View style={styles.warningContainer}>
+      <Image
+        source={require("../assets/images/bell_notification.png")}
+        style={{
+          objectFit: "contain",
+        }}
+      />
       <Text style={styles.warningText}>Không có thông báo nào</Text>
     </View>
   );
@@ -25,7 +32,7 @@ const NotificationModal = ({ open, setOpen, notificationList }) => {
       transparent={false}
       onRequestClose={() => setOpen(false)}
     >
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Thông báo</Text>
@@ -49,7 +56,7 @@ const NotificationModal = ({ open, setOpen, notificationList }) => {
             <NotificationWarning />
           )}
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };
@@ -84,7 +91,7 @@ const styles = StyleSheet.create({
   warningContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 40,
+    marginTop: 100,
   },
   warningText: {
     color: "#888",

@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 16,
     fontSize: 12,
-    fontWeight: "600", // Fix style string
+    fontWeight: "600",
     width: 16,
     height: 16,
     borderRadius: 8,

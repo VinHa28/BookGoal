@@ -83,7 +83,7 @@ export const login = async (req, res) => {
     res.json({
       accessToken,
       user: {
-        id: user._id,
+        _id: user._id,
         username: user.username,
         phone: user.phone,
         role: user.role,

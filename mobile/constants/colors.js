@@ -17,7 +17,7 @@ const colors = {
   tertiaryBrand: "#FE7474",
 
   // Status corlor:
-  pedding: "#FFC107",
+  pendding: "#FFC107",
   confirmed: "#28A745",
   cancelled: "#DC3545",
   requestCancel: "#FE7474",

@@ -16,7 +16,7 @@ const UpcomingBookingCard = ({ booking }) => {
         backgroundColor: hexToRgba("#ACB5FF", 0.1),
         marginBottom: 8,
       }}
-      onPress={() => router.push(`booking/${booking._id}`)}
+      onPress={() => router.push(`/booking/${booking._id}`)}
     >
       <Text
         style={{
@@ -89,9 +89,13 @@ const UpcomingBookingCard = ({ booking }) => {
         <Text
           style={
             booking.status === "pending"
-              ? styles.statusPeding
+              ? styles.statusPending
               : booking.status === "cancelled"
               ? styles.statusCancelled
+              : booking.status === "requestCancel"
+              ? styles.statusRequestCancel
+              : booking.status === "completed"
+              ? styles.statusCompleted
               : styles.statusConfirm
           }
         >
@@ -138,13 +142,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 15,
   },
-  statusPeding: {
-    color: colors.pedding,
+  statusPending: {
+    color: colors.pendding,
   },
   statusCancelled: {
     color: colors.cancelled,
   },
   statusConfirm: {
     color: colors.confirmed,
+  },
+  statusRequestCancel: {
+    color: colors.requestCancel,
+  },
+  statusCompleted: {
+    color: colors.completed,
   },
 });
