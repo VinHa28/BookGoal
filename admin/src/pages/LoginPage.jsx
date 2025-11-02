@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Form, Input, Button, Card, message } from "antd";
-import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import * as api from "../services/api";
+import { MailOutlined, LockOutlined } from "@ant-design/icons";
+import { login } from "../services/api";
 
 const LoginPage = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -10,12 +10,13 @@ const LoginPage = ({ onLoginSuccess }) => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const response = await api.login(values.phone, values.password);
+      const response = await login(values.email, values.password);
       const { accessToken, user } = response.data;
 
       if (user.role !== "admin") {
         throw new Error("Chỉ quản trị viên có quyền đăng nhập");
       }
+
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("user", JSON.stringify(user));
 
@@ -42,22 +43,32 @@ const LoginPage = ({ onLoginSuccess }) => {
       <Card title="Đăng nhập quản trị viên" style={{ width: 400 }}>
         <Form onFinish={onFinish}>
           <Form.Item
-            name="phone"
+            name="email"
             rules={[
-              { required: true, message: "Vui lòng nhập số điện thoại!" },
+              { required: true, message: "Vui lòng nhập email!" },
+              { type: "email", message: "Email không hợp lệ!" },
             ]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Số điện thoại" />
+            <Input
+              prefix={<MailOutlined />}
+              placeholder="Địa chỉ email"
+              autoComplete="email"
+            />
           </Form.Item>
+
           <Form.Item
             name="password"
             rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="Mật khẩu" />
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="Mật khẩu"
+              autoComplete="current-password"
+            />
           </Form.Item>
-          {errorMessage !== "" && (
-            <p style={{ color: "red" }}>{errorMessage}</p>
-          )}
+
+          {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} block>
               Đăng nhập

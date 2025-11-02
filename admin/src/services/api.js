@@ -19,8 +19,8 @@ apiClient.interceptors.request.use((config) => {
 });
 
 // ============ AUTH ============
-export const login = (phone, password) => {
-  return apiClient.post("/auth/login", { phone, password });
+export const login = (email, password) => {
+  return apiClient.post("/auth/login", { email, password });
 };
 
 export const logout = () => {

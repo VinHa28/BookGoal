@@ -1,4 +1,4 @@
-import React, { use, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Platform,
   Switch,
   Image,
+  Modal,
+  Linking,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import COLORS from "../../../constants/colors.js";
@@ -56,6 +58,10 @@ const SettingItem = ({
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+
+  const [supportVisible, setSupportVisible] = useState(false);
+  const supportPhone = "0981228204"; // 📞 Số điện thoại chủ sân
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -66,6 +72,15 @@ export default function ProfileScreen() {
 
   const handleEditProfile = () => {
     router.push("/(tabs)/profile/edit");
+  };
+
+  const handleSupport = () => {
+    setSupportVisible(true);
+  };
+
+  const handleCall = () => {
+    Linking.openURL(`tel:${supportPhone}`);
+    setSupportVisible(false);
   };
 
   return (
@@ -84,7 +99,6 @@ export default function ProfileScreen() {
           />
 
           <Text style={styles.userName}>{user?.username}</Text>
-
           <Text style={styles.userPhone}>ĐT: {user?.phone}</Text>
 
           <TouchableOpacity
@@ -96,12 +110,18 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.settingsSection}>
-          <SettingItem icon="lock-closed-outline" label="Đổi Mật khẩu" />
+          <SettingItem
+            icon="lock-closed-outline"
+            label="Đổi mật khẩu"
+            onPress={() => router.push("/(tabs)/profile/changePassword")}
+          />
 
-          {/* Hỗ trợ */}
-          <SettingItem icon="headset-outline" label="Trợ giúp & Hỗ trợ" />
+          <SettingItem
+            icon="headset-outline"
+            label="Trợ giúp & Hỗ trợ"
+            onPress={handleSupport}
+          />
 
-          {/* Đăng xuất */}
           <SettingItem
             icon="log-out-outline"
             label="Đăng xuất"
@@ -109,21 +129,45 @@ export default function ProfileScreen() {
           />
         </View>
       </ScrollView>
+
+      {/* --- MODAL HỖ TRỢ --- */}
+      <Modal
+        visible={supportVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setSupportVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Liên hệ hỗ trợ</Text>
+            <Text style={styles.modalText}>
+              Gặp vấn đề khi đặt sân hoặc cần hỗ trợ? Hãy gọi cho chủ sân:
+            </Text>
+
+            <TouchableOpacity onPress={handleCall}>
+              <Text style={styles.modalPhone}>{supportPhone}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setSupportVisible(false)}
+            >
+              <Text style={styles.modalCloseText}>Đóng</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.bottomSpacer} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f7f7f7",
-  },
-  scrollContent: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: "#f7f7f7" },
+  scrollContent: { flex: 1 },
 
-  // --- Header & User Info ---
+  // --- Header ---
   profileHeader: {
     alignItems: "center",
     paddingVertical: 30,
@@ -137,27 +181,14 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     backgroundColor: "#eee",
-    justifyContent: "center",
-    alignItems: "center",
     marginBottom: 10,
     borderWidth: 3,
     borderColor: COLORS.primary,
-    position: "relative",
-  },
-  avatarText: {
-    position: "absolute",
-    fontSize: 12,
-    color: "#666",
   },
   userName: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#333",
-  },
-  userEmail: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 2,
   },
   userPhone: {
     fontSize: 16,
@@ -171,11 +202,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 20,
-    shadowColor: COLORS.secondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
   },
   editButtonText: {
     color: "#fff",
@@ -194,7 +220,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
-    marginBottom: 20,
   },
   settingItem: {
     flexDirection: "row",
@@ -214,10 +239,50 @@ const styles = StyleSheet.create({
     color: "#333",
     marginLeft: 15,
   },
-  settingRight: {
-    // Chỉ để chứa chevron hoặc switch
+  settingRight: {},
+
+  // --- Modal ---
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  bottomSpacer: {
-    height: Platform.OS === "ios" ? 80 : 60,
+  modalBox: {
+    backgroundColor: "#fff",
+    width: "80%",
+    borderRadius: 15,
+    padding: 20,
+    alignItems: "center",
   },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 15,
+    textAlign: "center",
+    color: "#666",
+  },
+  modalPhone: {
+    marginTop: 15,
+    fontSize: 22,
+    color: COLORS.primary,
+    fontWeight: "bold",
+  },
+  modalCloseButton: {
+    marginTop: 25,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 25,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  modalCloseText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
+  bottomSpacer: { height: Platform.OS === "ios" ? 80 : 60 },
 });

@@ -7,32 +7,48 @@ import { signUp } from "../../services/authServices.js";
 const Signup = () => {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const phoneRegex = /^(0|\+84)[1-9]\d{8,9}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleSigup = async () => {
-    if (!fullName || !phone || !password) {
+    if (!fullName || !email || !phone || !password)
       return setError("Vui lòng nhập đầy đủ thông tin");
-    }
 
-    if (!phoneRegex.test(phone.trim())) {
-      return setError(
-        "Số điện thoại không hợp lệ (VD: 0123456789 hoặc +84123456789)"
-      );
-    }
+    if (!emailRegex.test(email.trim())) return setError("Email không hợp lệ");
+
+    if (!phoneRegex.test(phone.trim()))
+      return setError("Số điện thoại không hợp lệ");
 
     setError("");
     setLoading(true);
 
     try {
-      const res = await signUp(fullName.trim(), phone.trim(), password);
-      Alert.alert("Thành công", res.data.message || "Đăng ký thành công", [
-        { text: "OK", onPress: () => router.push("/(auth)") },
-      ]);
+      const res = await signUp(
+        fullName.trim(),
+        email.trim(),
+        phone.trim(),
+        password
+      );
+      Alert.alert(
+        "Đăng ký thành công",
+        "Vui lòng kiểm tra email để lấy mã OTP xác thực.",
+        [
+          {
+            text: "OK",
+            onPress: () =>
+              router.push({
+                pathname: "/(auth)/verifyEmail",
+                params: { email: email.trim() },
+              }),
+          },
+        ]
+      );
     } catch (error) {
       Alert.alert("Lỗi", error.message || "Đăng ký thất bại");
     } finally {
@@ -69,11 +85,22 @@ const Signup = () => {
             <Text style={styles.label}>Họ và tên</Text>
             <TextInput
               style={styles.input}
-              placeholder="Nhập tên"
-              keyboardType="default"
-              placeholderTextColor="#9EA1AE"
+              placeholder="Nhập họ và tên"
               onChangeText={setFullName}
               value={fullName}
+              placeholderTextColor="#9EA1AE"
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nhập email"
+              keyboardType="email-address"
+              onChangeText={setEmail}
+              value={email}
+              placeholderTextColor="#9EA1AE"
             />
           </View>
 
@@ -106,7 +133,7 @@ const Signup = () => {
           ) : null}
         </View>
 
-        <View style={styles.buttonContainer}>
+        <View style={styles.buttonSignup}>
           <TouchableOpacity
             style={styles.button}
             disabled={loading}

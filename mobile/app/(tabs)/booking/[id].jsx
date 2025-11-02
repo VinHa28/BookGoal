@@ -66,7 +66,6 @@ const BookingDetail = () => {
   const hanldeRequestCancel = async () => {
     try {
       const res = await requestCancelBooking(booking._id);
-      console.log(res);
       if (res) {
         const message = `Yêu cầu hủy đặt sân ${booking.field?.name} vào lúc ${
           booking.timeSlot

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -62,13 +62,23 @@ const EditProfileScreen = ({ navigation }) => {
               <View style={styles.inputUnderline} />
             </View>
 
-            {/* Email address */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Số điện thoại</Text>
               <TextInput
                 style={[styles.input, { opacity: 0.5 }]}
                 value={user ? user.phone : ""}
                 keyboardType="phone-pad"
+                autoCapitalize="none"
+                editable={false}
+              />
+              <View style={styles.inputUnderline} />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={[styles.input, { opacity: 0.5 }]}
+                value={user ? user.email : ""}
+                keyboardType="email"
                 autoCapitalize="none"
                 editable={false}
               />

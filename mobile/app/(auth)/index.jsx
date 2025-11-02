@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, TextInput, Alert } from "react-native";
+import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import styles from "../../assets/styles/auth.styles.js";
 import { Link, useRouter } from "expo-router";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -8,29 +8,26 @@ import colors from "../../constants/colors.js";
 const Login = () => {
   const router = useRouter();
   const { login } = useAuth();
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!phone || !password) {
-      return setError("Vui lòng nhập đầy đủ thông tin!");
-    }
-
+    if (!email || !password) return setError("Vui lòng nhập đầy đủ thông tin!");
     setError("");
     setLoading(true);
 
     try {
-      await login(phone, password);
+      await login(email.trim(), password);
       router.replace("/(tabs)");
     } catch (error) {
-      // Nhận đúng message từ service
       setError(error.message || "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -54,16 +51,16 @@ const Login = () => {
         <View>
           <Text style={styles.formTitle}>Đăng nhập</Text>
           <Text style={styles.formSubtitle}>
-            Chắc chắn rằng bạn đã có tài khoản
+            Vui lòng nhập thông tin tài khoản của bạn
           </Text>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Số điện thoại</Text>
+            <Text style={styles.label}>Email</Text>
             <TextInput
               style={styles.input}
-              placeholder="Nhập số điện thoại"
-              keyboardType="phone"
-              onChangeText={setPhone}
+              placeholder="Nhập email"
+              keyboardType="email-address"
+              onChangeText={setEmail}
               placeholderTextColor="#9EA1AE"
             />
           </View>
@@ -79,15 +76,20 @@ const Login = () => {
             />
           </View>
         </View>
+
         <Link
           href={"/(auth)/resetPassword"}
-          style={{ marginLeft: "auto", textDecorationLine: "underline",color: colors.secondary }}
+          style={{
+            marginLeft: "auto",
+            textDecorationLine: "underline",
+            color: colors.secondary,
+          }}
         >
           Quên mật khẩu?
         </Link>
-        {error ? (
-          <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>
-        ) : null}
+
+        {error ? <Text style={{ color: "red", marginTop: 10 }}>{error}</Text> : null}
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.button}
