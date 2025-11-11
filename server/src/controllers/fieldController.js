@@ -1,3 +1,4 @@
+import { createNotification } from "../helpers/helplers.js";
 import Booking from "../models/Booking.js";
 import Field from "../models/Field.js";
 
@@ -84,6 +85,15 @@ export const addField = async (req, res) => {
     });
 
     const savedField = await newField.save();
+
+    await createNotification({
+      targetType: "all",
+      userId: null,
+      title: `Sân mới ${newField.name}`,
+      message: `Khám phá ngay ${newField.name} với cơ sở vật chất đỉnh cao, đặt lịch ngay!`,
+      link: `field/${newField._id}`,
+      data: null,
+    });
     res
       .status(201)
       .json({ message: "Thêm sân mới thành công", field: savedField });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Text,
   FlatList,
@@ -14,13 +14,14 @@ import UpcomingBookingCard from "../../../components/UpcomingBookingCard.jsx";
 import BookingCalendar from "../../../components/BookingCalendar.jsx";
 import Loading from "../../../components/Loading.jsx";
 import { formatDateToYYYYMMDD } from "../../../utils/utils.js";
+import { useFocusEffect } from "expo-router";
 
 const UserBookingsScreen = () => {
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await getUserBookings(formatDateToYYYYMMDD(selectedDate));
@@ -30,13 +31,19 @@ const UserBookingsScreen = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedDate]);
   useEffect(() => {
     fetchBookings();
   }, [selectedDate]);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchBookings();
+    }, [fetchBookings])
+  );
+
   const onRefresh = () => {
-    fetchBookings(true);
+    fetchBookings();
   };
 
   return (

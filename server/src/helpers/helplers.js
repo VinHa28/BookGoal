@@ -4,7 +4,7 @@ import User from "../models/User.js";
 import UserNotification from "../models/UserNotification.js";
 
 export const autoUpdateExpiredBookings = async () => {
-  const today = new Date().toISOString().split("T")[0]; 
+  const today = new Date().toISOString().split("T")[0];
   const cancelledResult = await Booking.updateMany(
     { date: { $lt: today }, status: "pending" },
     { $set: { status: "cancelled" } }
@@ -39,7 +39,6 @@ export const createNotification = async ({
       targetType,
       title,
       message,
-      message,
       link,
       data,
     });
@@ -48,7 +47,7 @@ export const createNotification = async ({
       const user = await User.find({}, "_id");
       const userNotifitions = user.map((u) => ({
         userId: u._id,
-        notification: notification._id,
+        notificationId: notification._id,
       }));
       await UserNotification.insertMany(userNotifitions);
     } else if (targetType === "single" && userId) {

@@ -9,12 +9,12 @@ import {
   Alert, // Import StyleSheet
 } from "react-native";
 import BackHeader from "../../../components/BackHeader";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Loading from "../../../components/Loading";
 import { Ionicons } from "@expo/vector-icons";
 import colors, { hexToRgba } from "../../../constants/colors";
 import { formatCurrency } from "../../../utils/utils";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useFocusEffect } from "expo-router";
 import {
   cancelBooking,
   getBookingById,
@@ -27,15 +27,6 @@ const BookingDetail = () => {
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState({});
   const dateObject = new Date(booking.date);
-
-  const fetchBooking = async () => {
-    try {
-      const data = await getBookingById(id);
-      setBooking(data);
-    } catch (error) {
-      console.error("Error fetching booking!", error);
-    }
-  };
 
   const openMap = () => {
     const url = booking.field?.address || "";
@@ -84,9 +75,23 @@ const BookingDetail = () => {
     }
   };
 
-  useEffect(() => {
-    fetchBooking();
+  const fetchBooking = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getBookingById(id);
+      setBooking(data);
+    } catch (error) {
+      console.error("Error fetching booking!", error);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBooking();
+    }, [fetchBooking])
+  );
 
   if (loading)
     return (
